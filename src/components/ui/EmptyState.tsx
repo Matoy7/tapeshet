@@ -18,17 +18,38 @@ export function EmptyState({ image, title, description, action }: EmptyStateProp
        * oversized gap under the card's own top padding, while the bottom
        * stays at py-8 either way. Text-only usage (no image) is untouched. */}
       <div className={image ? "flex flex-col items-center gap-3 pb-8 pt-4 text-center" : "flex flex-col items-center gap-3 py-8 text-center"}>
-        {/* ~220px on mobile, ~310px from `sm:` up — the illustration as the
-         * main visual of the empty state, not a small placeholder — with
-         * `max-w-full h-auto` as a safety net on very narrow phones. */}
+        {/* Mobile stays exactly as it was (~220px, mb-8, card-title/content-
+         * primary typography) — every desktop change below is `sm:`-scoped
+         * so it only takes effect at the same breakpoint every other
+         * screen's own mobile/desktop split uses. Desktop: ~460px wide
+         * (the dominant visual, not a placeholder), `sm:mb-7` (28px) which,
+         * combined with the parent's unconditional `gap-3` (12px), lands
+         * the image-to-headline gap at the requested ~40px. */}
         {image ? (
-          <img src={image} alt="" aria-hidden className="mb-8 h-auto w-[220px] max-w-full object-contain sm:w-[310px]" />
+          <img
+            src={image}
+            alt=""
+            aria-hidden
+            className="mb-8 h-auto w-[220px] max-w-full object-contain sm:mb-7 sm:w-[460px]"
+          />
         ) : null}
-        <h3 className="text-card-title font-semibold text-content-primary">
+        <h3
+          className={
+            image
+              ? "text-card-title font-semibold text-content-primary sm:text-[30px] sm:font-bold sm:leading-9 sm:text-[#6f1e35]"
+              : "text-card-title font-semibold text-content-primary"
+          }
+        >
           {title}
         </h3>
         {description ? (
-          <p className="max-w-[420px] text-body-sm text-content-muted">
+          <p
+            className={
+              image
+                ? "max-w-[420px] text-body-sm text-content-muted sm:max-w-[480px] sm:text-[17px] sm:font-normal sm:leading-6 sm:text-[#6f1e35]/70"
+                : "max-w-[420px] text-body-sm text-content-muted"
+            }
+          >
             {description}
           </p>
         ) : null}

@@ -222,7 +222,7 @@ export function PersonalAreaScreen({
       <EmptyState
         image={assets.emptyStateBrain}
         title="אין עדיין פריטים להצגה"
-        description="כשתוסיפי רשימות הן יופיעו כאן"
+        description="כשתוסיפי רשימות, פריטים או שמות, הם יופיעו כאן."
       />
     </div>
   )
