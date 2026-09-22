@@ -14,7 +14,15 @@ export function EmptyState({ image, title, description, action }: EmptyStateProp
   return (
     <Card padding="lg">
       <div className="flex flex-col items-center gap-3 py-8 text-center">
-        {image ? <img src={image} alt="" aria-hidden className="mb-1 h-32 w-32 object-contain" /> : null}
+        {/* Sized like the project's other full-screen hero illustrations
+         * (LoginScreen/GuestNameOnboarding use size-32 md:size-40 for their
+         * circular avatar; this is the equivalent "main visual of an
+         * otherwise empty screen" role, so it scales up a step further —
+         * roughly Home's own 150px mascot on mobile, larger still on a
+         * spacious desktop dashboard). */}
+        {image ? (
+          <img src={image} alt="" aria-hidden className="mb-1 size-36 object-contain sm:size-40 lg:size-48" />
+        ) : null}
         <h3 className="text-card-title font-semibold text-content-primary">
           {title}
         </h3>
