@@ -97,6 +97,27 @@ function PersonalAreaCard({
 type LeavingGroup = { id: string; title: string; items: { id: string; label: string }[] }
 type GearGroup = { id: string; title: string; items: { id: string; label: string }[] }
 
+/** Just the fields the share message shows per professional — a subset of
+ * `Professional`, so this stays decoupled from the rest of that type. */
+type ProfessionalShareDetails = {
+  name: string
+  title?: string
+  areaLabel?: string
+  phone?: string
+}
+
+/** One professional's block in the share message: name on its own line,
+ * then only the details that actually exist for them (never a placeholder
+ * for a missing one) — same "don't invent data" rule as the rest of the
+ * app's real-data-only content. */
+function formatProfessionalForShare(p: ProfessionalShareDetails): string {
+  const lines = [`• ${p.name}`]
+  if (p.title) lines.push(`  ${p.title}`)
+  if (p.areaLabel) lines.push(`  📍 ${p.areaLabel}`)
+  if (p.phone) lines.push(`  📞 ${p.phone}`)
+  return lines.join("\n")
+}
+
 /**
  * Turns whatever's currently in "אזור אישי" into one clean, readable Hebrew
  * message for the "שלחי את הרשימה בוואטסאפ" share action below — the exact
@@ -107,7 +128,7 @@ type GearGroup = { id: string; title: string; items: { id: string; label: string
 function buildWhatsAppShareText(
   leavingGroups: LeavingGroup[],
   gearGroups: GearGroup[],
-  favoriteProfessionals: Chip[],
+  favoriteProfessionals: ProfessionalShareDetails[],
   favoriteNames: Chip[],
 ): string {
   const sections: string[] = []
@@ -123,8 +144,8 @@ function buildWhatsAppShareText(
   }
 
   if (favoriteProfessionals.length > 0) {
-    const items = favoriteProfessionals.map((chip) => `• ${chip.label}`)
-    sections.push(["👥 בעלי מקצוע מועדפים", ...items].join("\n"))
+    const entries = favoriteProfessionals.map(formatProfessionalForShare)
+    sections.push(`👩‍⚕️ בעלי מקצוע מועדפים\n\n${entries.join("\n\n")}`)
   }
 
   if (favoriteNames.length > 0) {
@@ -169,10 +190,20 @@ export function PersonalAreaScreen({
   const gearCount = gearGroups.reduce((sum, g) => sum + g.items.length, 0)
 
   // ---- Favorite Professionals --------------------------------------------
-  const favoriteProfessionals: Chip[] = PROFESSIONALS.filter((p) => professionalFavorites.has(p.id)).map((p) => ({
+  const favoriteProfessionalRecords = PROFESSIONALS.filter((p) => professionalFavorites.has(p.id))
+  const favoriteProfessionals: Chip[] = favoriteProfessionalRecords.map((p) => ({
     key: p.id,
     label: p.name,
     onRemove: () => onToggleProfessionalFavorite(p.id),
+  }))
+  // Richer than the chip above — name, profession, city and phone — for the
+  // WhatsApp share text below, which shows every detail actually on file
+  // for each saved professional rather than just their name.
+  const favoriteProfessionalDetails: ProfessionalShareDetails[] = favoriteProfessionalRecords.map((p) => ({
+    name: p.name,
+    title: p.title,
+    areaLabel: p.areaLabel,
+    phone: p.phone,
   }))
 
   // ---- Favorite Names -----------------------------------------------------
@@ -193,7 +224,7 @@ export function PersonalAreaScreen({
   // to WhatsApp" button. Nothing to persist or send through our own
   // backend for this — it's just handing the text to WhatsApp.
   const shareToWhatsApp = () => {
-    const text = buildWhatsAppShareText(leavingGroups, gearGroups, favoriteProfessionals, favoriteNames)
+    const text = buildWhatsAppShareText(leavingGroups, gearGroups, favoriteProfessionalDetails, favoriteNames)
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer")
   }
 
