@@ -60,20 +60,19 @@ function RemovableChip({ chip }: { chip: Chip }) {
 
 /** Card shell shared by every section — icon circle, title and a real
  * item-count badge, same language as `ChecklistCategoryCard`/`Card`
- * elsewhere in the app. */
+ * elsewhere in the app. Only ever rendered for a section that actually has
+ * items — see `hasAnyItems`/the per-section `.length > 0` guards below: once
+ * anything is saved anywhere, a still-empty section is left out entirely
+ * rather than shown with a placeholder message. */
 function PersonalAreaCard({
   icon,
   title,
   count,
-  isEmpty,
-  emptyMessage,
   children,
 }: {
   icon: ReactNode
   title: string
   count: number
-  isEmpty: boolean
-  emptyMessage: string
   children: ReactNode
 }) {
   return (
@@ -90,13 +89,7 @@ function PersonalAreaCard({
         </span>
       </div>
 
-      <div className="border-t border-[#f0e8e0] pt-3">
-        {isEmpty ? (
-          <p className="text-[14px] leading-5 text-[#877275]">{emptyMessage}</p>
-        ) : (
-          children
-        )}
-      </div>
+      <div className="border-t border-[#f0e8e0] pt-3">{children}</div>
     </div>
   )
 }
@@ -155,71 +148,74 @@ export function PersonalAreaScreen({
 
   const content = hasAnyItems ? (
     <div className="mt-4 grid max-w-[1200px] grid-cols-1 gap-4 lg:grid-cols-2">
-      <PersonalAreaCard
-        icon={<PhosphorIcon icon={Heart} size={22} weight="duotone" color="#6f1e35" />}
-        title="דברים שאהבתי"
-        count={likedItems.length}
-        isEmpty={likedItems.length === 0}
-        emptyMessage="עדיין לא שמרת כאן דברים. סמנו פריטים ברשימת ״לפני שיוצאים״ כדי לראות אותם כאן."
-      >
-        <div className="flex flex-wrap items-center gap-2">
-          {likedItems.map((chip) => (
-            <RemovableChip key={chip.key} chip={chip} />
-          ))}
-        </div>
-      </PersonalAreaCard>
+      {likedItems.length > 0 ? (
+        <PersonalAreaCard
+          icon={<PhosphorIcon icon={Heart} size={22} weight="duotone" color="#6f1e35" />}
+          title="דברים שאהבתי"
+          count={likedItems.length}
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            {likedItems.map((chip) => (
+              <RemovableChip key={chip.key} chip={chip} />
+            ))}
+          </div>
+        </PersonalAreaCard>
+      ) : null}
 
-      <PersonalAreaCard
-        icon={<PhosphorIcon icon={Basket} size={22} weight="duotone" color="#6f1e35" />}
-        title="ציוד שנבחר"
-        count={gearCount}
-        isEmpty={gearGroups.length === 0}
-        emptyMessage="עדיין לא שמרת כאן דברים. סמנו פריטים ברשימת ״ציוד לתינוק״ כדי לראות אותם כאן."
-      >
-        <div className="flex flex-col gap-3">
-          {gearGroups.map((group) => (
-            <div key={group.id} className="flex flex-col gap-1.5">
-              <div className="flex items-center gap-1.5 text-[13px] font-semibold text-[#877275]">
-                <PhosphorIcon icon={group.icon} size={14} weight="duotone" color="#877275" />
-                <span>{group.title}</span>
+      {gearGroups.length > 0 ? (
+        <PersonalAreaCard
+          icon={<PhosphorIcon icon={Basket} size={22} weight="duotone" color="#6f1e35" />}
+          title="ציוד שנבחר"
+          count={gearCount}
+        >
+          <div className="flex flex-col gap-3">
+            {gearGroups.map((group) => (
+              <div key={group.id} className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-1.5 text-[13px] font-semibold text-[#877275]">
+                  <PhosphorIcon icon={group.icon} size={14} weight="duotone" color="#877275" />
+                  <span>{group.title}</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {group.items.map((item) => (
+                    <RemovableChip
+                      key={item.id}
+                      chip={{ key: item.id, label: item.label, onRemove: () => onToggleGear(item.id) }}
+                    />
+                  ))}
+                </div>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                {group.items.map((item) => (
-                  <RemovableChip key={item.id} chip={{ key: item.id, label: item.label, onRemove: () => onToggleGear(item.id) }} />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </PersonalAreaCard>
+            ))}
+          </div>
+        </PersonalAreaCard>
+      ) : null}
 
-      <PersonalAreaCard
-        icon={<PhosphorIcon icon={UsersThree} size={22} weight="duotone" color="#6f1e35" />}
-        title="בעלי מקצוע מועדפים"
-        count={favoriteProfessionals.length}
-        isEmpty={favoriteProfessionals.length === 0}
-        emptyMessage="עדיין לא שמרת כאן דברים. סמנו לב ליד בעלי מקצוע כדי לראות אותם כאן."
-      >
-        <div className="flex flex-wrap items-center gap-2">
-          {favoriteProfessionals.map((chip) => (
-            <RemovableChip key={chip.key} chip={chip} />
-          ))}
-        </div>
-      </PersonalAreaCard>
+      {favoriteProfessionals.length > 0 ? (
+        <PersonalAreaCard
+          icon={<PhosphorIcon icon={UsersThree} size={22} weight="duotone" color="#6f1e35" />}
+          title="בעלי מקצוע מועדפים"
+          count={favoriteProfessionals.length}
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            {favoriteProfessionals.map((chip) => (
+              <RemovableChip key={chip.key} chip={chip} />
+            ))}
+          </div>
+        </PersonalAreaCard>
+      ) : null}
 
-      <PersonalAreaCard
-        icon={<PhosphorIcon icon={Heart} size={22} weight="duotone" color="#6f1e35" />}
-        title="שמות מועדפים"
-        count={favoriteNames.length}
-        isEmpty={favoriteNames.length === 0}
-        emptyMessage="עדיין לא שמרת כאן דברים. סמנו לב ליד שם כדי לראות אותו כאן."
-      >
-        <div className="flex flex-wrap items-center gap-2">
-          {favoriteNames.map((chip) => (
-            <RemovableChip key={chip.key} chip={chip} />
-          ))}
-        </div>
-      </PersonalAreaCard>
+      {favoriteNames.length > 0 ? (
+        <PersonalAreaCard
+          icon={<PhosphorIcon icon={Heart} size={22} weight="duotone" color="#6f1e35" />}
+          title="שמות מועדפים"
+          count={favoriteNames.length}
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            {favoriteNames.map((chip) => (
+              <RemovableChip key={chip.key} chip={chip} />
+            ))}
+          </div>
+        </PersonalAreaCard>
+      ) : null}
     </div>
   ) : (
     <div className="mt-4 max-w-[1200px]">
