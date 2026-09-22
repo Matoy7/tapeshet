@@ -199,6 +199,15 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* Every tappable control gets its own deliberate pressed state (an
+     active:scale, a background change, …) — the browser's own default tap
+     highlight is a plain gray rectangle that ignores rounded corners and
+     would either mask that feedback or flash alongside it. Removed once,
+     globally, rather than per component. */
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   /* Tafsheet palette, at every width — the desktop workspace uses the exact
      same colors as mobile, not the older lavender/navy/violet scaffold
      defaults above. Overrides the custom properties themselves, not just

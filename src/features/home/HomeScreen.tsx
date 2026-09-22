@@ -59,14 +59,28 @@ export function HomeScreen({ onNavigateToNames, onNavigateToProfessionals, onNav
             key={card.key}
             type="button"
             onClick={card.onNavigate}
+            // Empty touch handler — iOS Safari otherwise never applies
+            // `:active` styles to a tapped element unless something is
+            // listening for a touch event on it, so without this the press
+            // effect below silently never showed up on iPhone.
+            onTouchStart={() => {}}
             disabled={!card.onNavigate}
-            className="flex min-h-[168px] flex-col items-center justify-center gap-1 rounded-[28px] bg-white p-4 text-center shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-transform active:scale-[0.97] disabled:active:scale-100"
+            className="flex min-h-[168px] flex-col items-center justify-center gap-1 rounded-[28px] bg-white p-4 text-center shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-transform duration-100 active:scale-[0.96] active:bg-[#fff0f2] disabled:active:scale-100 disabled:active:bg-white"
           >
             <img src={card.img} alt="" aria-hidden className="mb-1 h-14 w-14 object-contain" />
             <p className="text-[17px] font-bold leading-[23px] text-[#6f1e35]">{card.title}</p>
           </button>
         ))}
       </div>
+
+      {/* Non-functional for now, per the request — no onClick, no
+          navigation, no state. Purely the visual element. */}
+      <button
+        type="button"
+        className="mt-4 flex h-14 w-full items-center justify-center rounded-full bg-[#6f1e35] text-[17px] font-bold text-white"
+      >
+        אזור אישי
+      </button>
     </div>
   )
 }
