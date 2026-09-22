@@ -12,7 +12,13 @@
 // "הכנת תיק לידה" (Hospital Bag) is no longer its own screen — it merged
 // into "ציוד לתינוק" (Baby Gear) as one of that screen's categories (see
 // BabyGearScreen.tsx), so "bag" is no longer a MobileView of its own.
-export type MobileView = "home" | "browse" | "gear" | "leaving" | "professionals"
+//
+// "personal" ("אזור אישי") is a desktop-only screen — reachable only via the
+// desktop sidebar's nav item (see App.tsx's NAV_GROUPS); the mobile drawer's
+// own category list has no entry that points here, so mobile never
+// navigates into it through the UI. It still gets a real route so the
+// desktop sidebar can use ordinary navigation like every other nav item.
+export type MobileView = "home" | "browse" | "gear" | "leaving" | "professionals" | "personal"
 
 export const ROUTE_FOR_VIEW: Record<MobileView, string> = {
   home: "/",
@@ -20,6 +26,7 @@ export const ROUTE_FOR_VIEW: Record<MobileView, string> = {
   gear: "/baby-equipment",
   leaving: "/before-going-out",
   professionals: "/professionals",
+  personal: "/personal-area",
 }
 
 const VIEW_FOR_ROUTE: Record<string, MobileView> = Object.fromEntries(

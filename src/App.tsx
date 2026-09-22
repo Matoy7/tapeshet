@@ -23,7 +23,7 @@ import {
 } from "@/features/auth/linkAccount"
 import { assets } from "@/lib/assets"
 import { supabase, isSupabaseConfigured } from "@/lib/supabase"
-import { ListMagnifyingGlass, Basket, CarSimple, UsersThree } from "@phosphor-icons/react"
+import { ListMagnifyingGlass, Basket, CarSimple, UsersThree, BookmarkSimple } from "@phosphor-icons/react"
 import type { MobileCategoryItem } from "@/components/layout/MobileNav"
 
 import { useNames } from "@/features/names/useNames"
@@ -37,6 +37,7 @@ import { HomeScreen } from "@/features/home/HomeScreen"
 import { BabyGearScreen } from "@/features/babyGear/BabyGearScreen"
 import { LeavingScreen } from "@/features/leaving/LeavingScreen"
 import { ProfessionalsScreen } from "@/features/professionals/ProfessionalsScreen"
+import { PersonalAreaScreen } from "@/features/personalArea/PersonalAreaScreen"
 import { ROUTE_FOR_VIEW, viewForPathname, type MobileView } from "@/lib/screenRoutes"
 import { useIsDesktop } from "@/lib/useIsDesktop"
 import { cn } from "@/lib/cn"
@@ -56,8 +57,13 @@ const PRIVACY_NOTE = "השמות שאתם שומרים גלויים רק לכם.
 // "הכנת תיק לידה" no longer has its own row — it's a category inside
 // "ציוד לתינוק" now (see BabyGearScreen.tsx), so this list has one fewer
 // item than it used to.
+//
+// "אזור אישי" sits at the top, above every functional area — a dashboard of
+// what the person has already saved, rather than one more product area
+// alongside them.
 const NAV_GROUPS = [
   [
+    { id: "personal", label: "אזור אישי", icon: BookmarkSimple },
     { id: "gear", label: "ציוד לתינוק", icon: Basket },
     { id: "leaving", label: "לפני שיוצאים", icon: CarSimple },
     { id: "browse", label: "בחירת שם", icon: ListMagnifyingGlass },
@@ -135,6 +141,15 @@ export default function App() {
   useEffect(() => {
     if (!readyForDashboard || !isDesktop || mobileView !== "home") return
     navigate(ROUTE_FOR_VIEW.gear, { replace: true })
+  }, [readyForDashboard, isDesktop, mobileView, navigate])
+
+  // "אזור אישי" is desktop-only (see PersonalAreaScreen.tsx) — there's no
+  // mobile UI that can navigate here, but guard the direct-URL case the
+  // same way the effect above guards desktop landing on the mobile-only
+  // Home screen.
+  useEffect(() => {
+    if (!readyForDashboard || isDesktop || mobileView !== "personal") return
+    navigate(ROUTE_FOR_VIEW.home, { replace: true })
   }, [readyForDashboard, isDesktop, mobileView, navigate])
 
   const [filters, setFilters] = useState<NameFiltersValue>(EMPTY_NAME_FILTERS)
@@ -314,6 +329,14 @@ export default function App() {
 
         <div className={cn(mobileView === "professionals" ? undefined : "hidden")}>
           <ProfessionalsScreen onBack={() => setMobileView("home")} />
+        </div>
+
+        {/* Desktop-only, like Home is mobile-only — see the redirect effect
+            above. PersonalAreaScreen renders nothing below `sm:` itself, but
+            this wrapper also stays hidden below `sm:` so it never occupies
+            layout space if the redirect hasn't fired yet. */}
+        <div className={cn(mobileView === "personal" ? "hidden sm:block" : "hidden")}>
+          <PersonalAreaScreen />
         </div>
 
         {/* The existing name catalogue — its own content byte-for-byte
