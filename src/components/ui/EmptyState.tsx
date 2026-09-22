@@ -13,18 +13,16 @@ type EmptyStateProps = {
 export function EmptyState({ image, title, description, action }: EmptyStateProps) {
   return (
     <Card padding="lg">
-      <div className="flex flex-col items-center gap-3 py-8 text-center">
-        {/* 4x the previous 144/160/192px target (576/640/768px) — `max-w-full
-         * h-auto` keeps that as the size on any screen with room for it,
-         * while letting it shrink to fit rather than overflow the card on
-         * a narrow phone. */}
+      {/* Less top padding than the default py-8 when there's an illustration
+       * to show — pulls it up slightly so it doesn't float in an
+       * oversized gap under the card's own top padding, while the bottom
+       * stays at py-8 either way. Text-only usage (no image) is untouched. */}
+      <div className={image ? "flex flex-col items-center gap-3 pb-8 pt-4 text-center" : "flex flex-col items-center gap-3 py-8 text-center"}>
+        {/* ~220px on mobile, ~310px from `sm:` up — the illustration as the
+         * main visual of the empty state, not a small placeholder — with
+         * `max-w-full h-auto` as a safety net on very narrow phones. */}
         {image ? (
-          <img
-            src={image}
-            alt=""
-            aria-hidden
-            className="mb-1 h-auto w-[36rem] max-w-full object-contain sm:w-[40rem] lg:w-[48rem]"
-          />
+          <img src={image} alt="" aria-hidden className="mb-8 h-auto w-[220px] max-w-full object-contain sm:w-[310px]" />
         ) : null}
         <h3 className="text-card-title font-semibold text-content-primary">
           {title}
