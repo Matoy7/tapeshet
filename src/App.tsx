@@ -328,19 +328,15 @@ export default function App() {
         </div>
 
         <div className={cn(mobileView === "gear" ? undefined : "hidden")}>
-          <BabyGearScreen onBack={() => setMobileView("home")} checked={gearChecked} onToggle={toggleGear} />
+          <BabyGearScreen checked={gearChecked} onToggle={toggleGear} />
         </div>
 
         <div className={cn(mobileView === "leaving" ? undefined : "hidden")}>
-          <LeavingScreen onBack={() => setMobileView("home")} checked={leavingChecked} onToggle={toggleLeaving} />
+          <LeavingScreen checked={leavingChecked} onToggle={toggleLeaving} />
         </div>
 
         <div className={cn(mobileView === "professionals" ? undefined : "hidden")}>
-          <ProfessionalsScreen
-            onBack={() => setMobileView("home")}
-            favorites={professionalFavorites}
-            onToggleFavorite={toggleProfessionalFavorite}
-          />
+          <ProfessionalsScreen favorites={professionalFavorites} onToggleFavorite={toggleProfessionalFavorite} />
         </div>
 
         {/* Reachable from the mobile Home screen's "אזור אישי" button now too
@@ -350,7 +346,6 @@ export default function App() {
             read/write — see the lifted-state block up top. */}
         <div className={cn(mobileView === "personal" ? undefined : "hidden")}>
           <PersonalAreaScreen
-            onBack={() => setMobileView("home")}
             names={names}
             nameFavorites={favorites}
             onToggleNameFavorite={toggleFavorite}
@@ -374,18 +369,9 @@ export default function App() {
         <div className={cn(mobileView === "browse" ? undefined : "hidden")}>
           <Section>
             <div className="flex flex-col gap-4">
-              {/* Mobile-only way back to the Home Page — the desktop sidebar
-                  nav is untouched (still just the one "browse" item), so
-                  this is the only new navigation surface, and only on
-                  mobile. */}
-              <button
-                type="button"
-                onClick={() => setMobileView("home")}
-                className="flex items-center gap-1 self-end text-[14px] font-medium text-[#6f1e35] sm:hidden"
-              >
-                ← חזרה
-              </button>
-
+              {/* No "← חזרה" link any more (removed everywhere per the
+                  request); navigation back to Home is via the sidebar/
+                  drawer only. */}
               <div className="sm:hidden">
                 <div className="flex flex-col items-center pb-2 pt-1 text-center">
                   <img src={assets.homeNames} alt="" aria-hidden className="mb-1 h-28 w-28 object-contain" />

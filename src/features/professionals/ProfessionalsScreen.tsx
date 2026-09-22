@@ -10,7 +10,6 @@ import { SORT_OPTIONS } from "./filterOptions"
 import { PROFESSIONALS } from "@/data/professionals"
 
 type ProfessionalsScreenProps = {
-  onBack: () => void
   /** Lifted to App.tsx via `useProfessionalFavorites` (not local state here
    * anymore) so "אזור אישי" can show the exact same favorited professionals
    * under "בעלי מקצוע מועדפים" — one shared Set, not a second copy that
@@ -22,29 +21,22 @@ type ProfessionalsScreenProps = {
 /**
  * בעלי מקצוע — a directory of pregnancy/postpartum professionals, following
  * the same screen anatomy as Baby Gear / Leaving: a mobile hero (category
- * illustration + back button) and a compact DesktopScreenHeader on desktop,
- * both using the same image at the same size as every other category — one
+ * illustration) and a compact DesktopScreenHeader on desktop, both using
+ * the same image at the same size as every other category — one
  * Section-less flow of category → search → filters → results shared by both
  * breakpoints. Category/search/filters/sort stay local to this screen
  * (nothing else needs them); favorites come in as props (see above).
  */
-export function ProfessionalsScreen({ onBack, favorites, onToggleFavorite: toggleFavorite }: ProfessionalsScreenProps) {
+export function ProfessionalsScreen({ favorites, onToggleFavorite: toggleFavorite }: ProfessionalsScreenProps) {
   const { category, setCategory, search, setSearch, filters, setFilters, sort, setSort, results } = useProfessionals()
 
   const categoryResults = PROFESSIONALS.filter((p) => p.category === category)
 
   return (
     <div className="px-1 pb-6 pt-2 sm:px-0" dir="rtl">
-      {/* Mobile hero */}
+      {/* Mobile hero — no "← חזרה" link any more (removed everywhere per
+          the request); navigation back to Home is via the sidebar/drawer only. */}
       <div className="sm:hidden">
-        <button
-          type="button"
-          onClick={onBack}
-          className="mb-2 flex items-center gap-1 self-end text-[14px] font-medium text-[#6f1e35]"
-        >
-          ← חזרה
-        </button>
-
         <div className="flex flex-col items-center pb-2 pt-1 text-center">
           <img src={assets.homeProfessionals} alt="" aria-hidden className="mb-1 h-28 w-28 object-contain" />
           <h1 className="text-[26px] font-black leading-[34px] text-[#6f1e35]">בעלי מקצוע</h1>

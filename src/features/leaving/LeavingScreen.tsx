@@ -80,7 +80,6 @@ function Chip({ chip }: { chip: ChipData }) {
 }
 
 type LeavingScreenProps = {
-  onBack: () => void
   /** Lifted to App.tsx (not local state here anymore) so "אזור אישי" can
    * show the exact same checked items under "דברים שאהבתי" — one shared
    * Set, not a second copy that could drift out of sync. */
@@ -88,7 +87,7 @@ type LeavingScreenProps = {
   onToggle: (id: string) => void
 }
 
-export function LeavingScreen({ onBack, checked, onToggle: toggle }: LeavingScreenProps) {
+export function LeavingScreen({ checked, onToggle: toggle }: LeavingScreenProps) {
   const [filters, setFilters] = useState<LeavingFilters>(EMPTY_FILTERS)
 
   const hasActiveFilters =
@@ -160,16 +159,9 @@ export function LeavingScreen({ onBack, checked, onToggle: toggle }: LeavingScre
 
   return (
     <div className="px-1 pb-6 pt-2 sm:px-0" dir="rtl">
-      {/* Mobile hero — unchanged. */}
+      {/* Mobile hero — no "← חזרה" link any more (removed everywhere per
+          the request); navigation back to Home is via the sidebar/drawer only. */}
       <div className="sm:hidden">
-        <button
-          type="button"
-          onClick={onBack}
-          className="mb-2 flex items-center gap-1 self-end text-[14px] font-medium text-[#6f1e35]"
-        >
-          ← חזרה
-        </button>
-
         <div className="flex flex-col items-center pb-2 pt-1 text-center">
           <img src={assets.homeLeaving} alt="" aria-hidden className="mb-1 h-28 w-28 object-contain" />
           <h1 className="text-[26px] font-black leading-[34px] text-[#6f1e35]">לפני שיוצאים</h1>

@@ -9,7 +9,6 @@ import { Lightbulb } from "@phosphor-icons/react"
 import { GEAR_CATEGORIES as CATEGORIES } from "@/data/babyGear"
 
 type BabyGearScreenProps = {
-  onBack: () => void
   /** Lifted to App.tsx (not local state here anymore) so "אזור אישי" can
    * show the exact same checked items under "ציוד שנבחר" — one shared Set,
    * not a second copy that could drift out of sync. */
@@ -17,22 +16,16 @@ type BabyGearScreenProps = {
   onToggle: (id: string) => void
 }
 
-export function BabyGearScreen({ onBack, checked, onToggle: toggle }: BabyGearScreenProps) {
+export function BabyGearScreen({ checked, onToggle: toggle }: BabyGearScreenProps) {
   const totalItems = CATEGORIES.reduce((sum, c) => sum + c.items.length, 0)
   const totalDone = CATEGORIES.reduce((sum, c) => sum + c.items.filter((i) => checked.has(i.id)).length, 0)
 
   return (
     <div className="px-1 pb-6 pt-2 sm:px-0" dir="rtl">
-      {/* Mobile — unchanged: same hero, title and page picture as before. */}
+      {/* Mobile — same hero, title and page picture as before (no "← חזרה"
+          link any more — navigation back to Home is via the sidebar/drawer
+          only now, per the request to remove that link everywhere). */}
       <div className="sm:hidden">
-        <button
-          type="button"
-          onClick={onBack}
-          className="mb-2 flex items-center gap-1 self-end text-[14px] font-medium text-[#6f1e35]"
-        >
-          ← חזרה
-        </button>
-
         <div className="flex flex-col items-center pb-2 pt-1 text-center">
           <img src={assets.homeBabyGear} alt="" aria-hidden className="mb-1 h-28 w-28 object-contain" />
           <h1 className="text-[26px] font-black leading-[34px] text-[#6f1e35]">ציוד לתינוק</h1>

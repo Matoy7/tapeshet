@@ -25,7 +25,6 @@ import { BookmarkSimple, Heart, Basket, UsersThree, X } from "@phosphor-icons/re
  * piece of state actually lives.
  */
 type PersonalAreaScreenProps = {
-  onBack: () => void
   names: NameCardData[]
   nameFavorites: Map<string, boolean>
   onToggleNameFavorite: (nameId: string) => void
@@ -95,7 +94,6 @@ function PersonalAreaCard({
 }
 
 export function PersonalAreaScreen({
-  onBack,
   names,
   nameFavorites,
   onToggleNameFavorite,
@@ -229,18 +227,12 @@ export function PersonalAreaScreen({
 
   return (
     <div className="px-1 pb-6 pt-2 sm:px-0" dir="rtl">
-      {/* Mobile hero — same convention as Gear/Leaving/Professionals: a back
-          link, a centered icon standing in for those screens' illustration
-          (there's no dedicated Personal Area artwork), title and subtitle. */}
+      {/* Mobile hero — same convention as Gear/Leaving/Professionals: a
+          centered icon standing in for those screens' illustration (there's
+          no dedicated Personal Area artwork), title and subtitle. No
+          "← חזרה" link any more (removed everywhere per the request);
+          navigation back to Home is via the sidebar/drawer only. */}
       <div className="sm:hidden">
-        <button
-          type="button"
-          onClick={onBack}
-          className="mb-2 flex items-center gap-1 self-end text-[14px] font-medium text-[#6f1e35]"
-        >
-          ← חזרה
-        </button>
-
         <div className="flex flex-col items-center pb-2 pt-1 text-center">
           <span
             aria-hidden
