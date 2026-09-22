@@ -69,6 +69,10 @@ export const assets = {
    *  own supplied artwork, used wherever a saved-items list has nothing in
    *  it yet (currently: אזור אישי, mobile and desktop). */
   emptyStateBrain: `${base}/empty-state-brain.png`,
+  /** אזור אישי category illustration (folder of saved items) — the user's
+   *  own supplied artwork, same convention/size as the other category
+   *  images above (mobile hero + DesktopScreenHeader). */
+  homePersonalArea: `${base}/home-personal-area.png`,
 } as const
 
 export type AssetKey = keyof typeof assets

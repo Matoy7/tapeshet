@@ -7,7 +7,7 @@ import { GEAR_CATEGORIES } from "@/data/babyGear"
 import { LEAVING_CATEGORIES } from "@/data/leaving"
 import { PROFESSIONALS } from "@/data/professionals"
 import type { NameCardData } from "@/features/names/NameCard"
-import { BookmarkSimple, Heart, Basket, UsersThree, X } from "@phosphor-icons/react"
+import { Heart, Basket, UsersThree, X } from "@phosphor-icons/react"
 
 /**
  * "אזור אישי" (Personal Area) — the single place that gathers everything the
@@ -241,19 +241,13 @@ export function PersonalAreaScreen({
 
   return (
     <div className="px-1 pb-6 pt-2 sm:px-0" dir="rtl">
-      {/* Mobile hero — same convention as Gear/Leaving/Professionals: a
-          centered icon standing in for those screens' illustration (there's
-          no dedicated Personal Area artwork), title and subtitle. No
-          "← חזרה" link any more (removed everywhere per the request);
-          navigation back to Home is via the sidebar/drawer only. */}
+      {/* Mobile hero — same convention as Gear/Leaving/Professionals: the
+          category illustration, title and subtitle. No "← חזרה" link any
+          more (removed everywhere per the request); navigation back to Home
+          is via the sidebar/drawer only. */}
       <div className="sm:hidden">
         <div className="flex flex-col items-center pb-2 pt-1 text-center">
-          <span
-            aria-hidden
-            className="mb-1 flex size-28 items-center justify-center rounded-full bg-[rgba(255,217,222,0.4)]"
-          >
-            <PhosphorIcon icon={BookmarkSimple} size={48} weight="duotone" color="#6f1e35" />
-          </span>
+          <img src={assets.homePersonalArea} alt="" aria-hidden className="mb-1 h-28 w-28 object-contain" />
           <h1 className="text-[26px] font-black leading-[34px] text-[#6f1e35]">אזור אישי</h1>
           <p className="mt-1 text-[14px] leading-[22px] text-[#544245]">כל מה ששמרת בטפשת במקום אחד</p>
         </div>
@@ -264,7 +258,7 @@ export function PersonalAreaScreen({
       {/* Desktop — compact header + the same card grid (or empty state). */}
       <div className="hidden sm:block">
         <DesktopScreenHeader
-          icon={<PhosphorIcon icon={BookmarkSimple} size={26} weight="duotone" color="#6f1e35" />}
+          image={assets.homePersonalArea}
           title="אזור אישי"
           subtitle="כל מה ששמרת בטפשת במקום אחד"
         />
