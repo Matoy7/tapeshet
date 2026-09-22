@@ -11,6 +11,12 @@ import { PROFESSIONALS } from "@/data/professionals"
 
 type ProfessionalsScreenProps = {
   onBack: () => void
+  /** Lifted to App.tsx via `useProfessionalFavorites` (not local state here
+   * anymore) so "אזור אישי" can show the exact same favorited professionals
+   * under "בעלי מקצוע מועדפים" — one shared Set, not a second copy that
+   * could drift out of sync. */
+  favorites: Set<string>
+  onToggleFavorite: (id: string) => void
 }
 
 /**
@@ -19,14 +25,11 @@ type ProfessionalsScreenProps = {
  * illustration + back button) and a compact DesktopScreenHeader on desktop,
  * both using the same image at the same size as every other category — one
  * Section-less flow of category → search → filters → results shared by both
- * breakpoints. All state (category, search, filters, sort, favorites) lives
- * here, exactly like the checklist screens keep their own state — nothing
- * needs lifting to App.tsx since nothing here is logged or shared across
- * screens.
+ * breakpoints. Category/search/filters/sort stay local to this screen
+ * (nothing else needs them); favorites come in as props (see above).
  */
-export function ProfessionalsScreen({ onBack }: ProfessionalsScreenProps) {
-  const { category, setCategory, search, setSearch, filters, setFilters, sort, setSort, results, favorites, toggleFavorite } =
-    useProfessionals()
+export function ProfessionalsScreen({ onBack, favorites, onToggleFavorite: toggleFavorite }: ProfessionalsScreenProps) {
+  const { category, setCategory, search, setSearch, filters, setFilters, sort, setSort, results } = useProfessionals()
 
   const categoryResults = PROFESSIONALS.filter((p) => p.category === category)
 

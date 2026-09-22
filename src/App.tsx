@@ -37,7 +37,9 @@ import { HomeScreen } from "@/features/home/HomeScreen"
 import { BabyGearScreen } from "@/features/babyGear/BabyGearScreen"
 import { LeavingScreen } from "@/features/leaving/LeavingScreen"
 import { ProfessionalsScreen } from "@/features/professionals/ProfessionalsScreen"
+import { useProfessionalFavorites } from "@/features/professionals/useProfessionals"
 import { PersonalAreaScreen } from "@/features/personalArea/PersonalAreaScreen"
+import { toggleInSet } from "@/lib/toggleInSet"
 import { ROUTE_FOR_VIEW, viewForPathname, type MobileView } from "@/lib/screenRoutes"
 import { useIsDesktop } from "@/lib/useIsDesktop"
 import { cn } from "@/lib/cn"
@@ -147,6 +149,20 @@ export default function App() {
   const [sort, setSort] = useState<"alphabetical" | "popularity">("alphabetical")
   const [linkResult, setLinkResult] = useState<LinkResult | null>(null)
   const [confirmGuestSignOut, setConfirmGuestSignOut] = useState(false)
+
+  // Lifted out of BabyGearScreen/LeavingScreen/ProfessionalsScreen (which
+  // used to each own this as local state) so "אזור אישי" reads and writes
+  // the exact same checked-items/favorites state those screens use — one
+  // shared source of truth per collection, not a second copy that could
+  // drift out of sync. Names already work this way via `useNames` below
+  // (its `favorites` Map is this same kind of App-level shared state).
+  const [gearChecked, setGearChecked] = useState<Set<string>>(new Set())
+  const toggleGear = useCallback((id: string) => setGearChecked((prev) => toggleInSet(prev, id)), [])
+
+  const [leavingChecked, setLeavingChecked] = useState<Set<string>>(new Set())
+  const toggleLeaving = useCallback((id: string) => setLeavingChecked((prev) => toggleInSet(prev, id)), [])
+
+  const { favorites: professionalFavorites, toggleFavorite: toggleProfessionalFavorite } = useProfessionalFavorites()
 
   const providerAvatar = session ? providerAvatarUrl(session.user) : null
 
@@ -312,22 +328,39 @@ export default function App() {
         </div>
 
         <div className={cn(mobileView === "gear" ? undefined : "hidden")}>
-          <BabyGearScreen onBack={() => setMobileView("home")} />
+          <BabyGearScreen onBack={() => setMobileView("home")} checked={gearChecked} onToggle={toggleGear} />
         </div>
 
         <div className={cn(mobileView === "leaving" ? undefined : "hidden")}>
-          <LeavingScreen onBack={() => setMobileView("home")} />
+          <LeavingScreen onBack={() => setMobileView("home")} checked={leavingChecked} onToggle={toggleLeaving} />
         </div>
 
         <div className={cn(mobileView === "professionals" ? undefined : "hidden")}>
-          <ProfessionalsScreen onBack={() => setMobileView("home")} />
+          <ProfessionalsScreen
+            onBack={() => setMobileView("home")}
+            favorites={professionalFavorites}
+            onToggleFavorite={toggleProfessionalFavorite}
+          />
         </div>
 
         {/* Reachable from the mobile Home screen's "אזור אישי" button now too
             (see HomeScreen.tsx), so — like Gear/Leaving/Browse/Professionals
-            — this must stay visible at every breakpoint when active. */}
+            — this must stay visible at every breakpoint when active. Every
+            prop here is the exact same state instance the screens above
+            read/write — see the lifted-state block up top. */}
         <div className={cn(mobileView === "personal" ? undefined : "hidden")}>
-          <PersonalAreaScreen onBack={() => setMobileView("home")} />
+          <PersonalAreaScreen
+            onBack={() => setMobileView("home")}
+            names={names}
+            nameFavorites={favorites}
+            onToggleNameFavorite={toggleFavorite}
+            gearChecked={gearChecked}
+            onToggleGear={toggleGear}
+            leavingChecked={leavingChecked}
+            onToggleLeaving={toggleLeaving}
+            professionalFavorites={professionalFavorites}
+            onToggleProfessionalFavorite={toggleProfessionalFavorite}
+          />
         </div>
 
         {/* The existing name catalogue — its own content byte-for-byte

@@ -1,61 +1,87 @@
+import type { ReactNode } from "react"
 import { DesktopScreenHeader } from "@/components/layout/DesktopScreenHeader"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { Icon as PhosphorIcon } from "@/components/ui/PhosphorIcon"
 import { assets } from "@/lib/assets"
-import { BookmarkSimple, Heart, Basket, Suitcase, CarSimple, UsersThree } from "@phosphor-icons/react"
-import type { Icon as PhosphorIconComponent } from "@phosphor-icons/react"
+import { GEAR_CATEGORIES } from "@/data/babyGear"
+import { LEAVING_CATEGORIES } from "@/data/leaving"
+import { PROFESSIONALS } from "@/data/professionals"
+import type { NameCardData } from "@/features/names/NameCard"
+import { BookmarkSimple, Heart, Basket, UsersThree, X } from "@phosphor-icons/react"
 
 /**
- * "אזור אישי" (Personal Area) dashboard: a read-only overview of everything
- * the person has saved across the product — saved names, saved gear,
- * hospital-bag progress, outing lists, saved professionals — each as one
- * preview card that links nowhere yet (see the brief: UI and navigation
- * structure only, no new data layer).
+ * "אזור אישי" (Personal Area) — the single place that gathers everything the
+ * person has personally selected, saved or liked anywhere else on Tapeshet:
+ * favorited names, favorited professionals, checked-off equipment (grouped
+ * by which checklist category it came from) and checked-off items from the
+ * "לפני שיוצאים" outing checklist.
  *
- * Reachable from the desktop sidebar's own "אזור אישי" item (App.tsx's
- * NAV_GROUPS) and, on mobile, from the Home screen's "אזור אישי" button —
- * so like its sibling screens (Gear/Leaving/Professionals) it follows the
- * mobile-hero / desktop-DesktopScreenHeader split rather than being
- * desktop-only.
- *
- * There's no real saved-items data source wired up yet (see the brief: UI
- * and navigation structure only, no new data layer), so every section
- * starts with zero items — the honest state given nothing is actually
- * saved anywhere yet — and the screen falls back to the empty-state
- * illustration below. `SECTIONS` is still the real per-category shape
- * (icon, title, count, preview) so wiring in real saved-item data later is
- * a matter of filling these arrays in, not touching the layout.
+ * Every list below is a *view* over state that's actually owned in App.tsx
+ * and used by the screens where the person made the selection — this
+ * component never keeps its own copy, so favoriting/checking anywhere
+ * (including the removable chips rendered right here) is reflected
+ * everywhere else immediately, and vice versa. See App.tsx's "lifted out of
+ * BabyGearScreen/LeavingScreen/ProfessionalsScreen" comment for where each
+ * piece of state actually lives.
  */
-type PersonalSection = {
-  id: string
-  icon: PhosphorIconComponent
-  title: string
-  count: string
-  preview: string[]
-  hasMore?: boolean
+type PersonalAreaScreenProps = {
+  onBack: () => void
+  names: NameCardData[]
+  nameFavorites: Map<string, boolean>
+  onToggleNameFavorite: (nameId: string) => void
+  gearChecked: Set<string>
+  onToggleGear: (id: string) => void
+  leavingChecked: Set<string>
+  onToggleLeaving: (id: string) => void
+  professionalFavorites: Set<string>
+  onToggleProfessionalFavorite: (id: string) => void
 }
 
-const SECTIONS: PersonalSection[] = [
-  { id: "names", icon: Heart, title: "שמות שאהבתי", count: "0 שמות", preview: [] },
-  { id: "gear", icon: Basket, title: "ציוד לתינוק", count: "0 פריטים", preview: [] },
-  { id: "hospitalBag", icon: Suitcase, title: "תיק לידה", count: "0 פריטים", preview: [] },
-  { id: "leaving", icon: CarSimple, title: "לפני שיוצאים", count: "0 רשימות", preview: [] },
-  { id: "professionals", icon: UsersThree, title: "בעלי מקצוע", count: "0 בעלי מקצוע", preview: [] },
-]
+type Chip = { key: string; label: string; onRemove: () => void }
 
-/**
- * One saved-content preview card — same shell, icon-circle and count-badge
- * language as `ChecklistCategoryCard` (border-[#f0e8e0], rounded-xl, white,
- * the soft card shadow), but showing a flat preview list instead of
- * checkable rows, since this content isn't a checklist.
- */
-function PersonalAreaCard({ icon, title, count, preview, hasMore }: PersonalSection) {
+/** One removable saved item — the same pill/× convention the Leaving/
+ * Professionals filter-chip rows already use, so "this is something you
+ * chose and can undo" reads consistently across the app. */
+function RemovableChip({ chip }: { chip: Chip }) {
+  return (
+    <span className="flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-[#f3ede8] ps-1 pe-3 text-[14px] font-medium text-[#1d1b19]">
+      <button
+        type="button"
+        onClick={chip.onRemove}
+        aria-label={`הסרת ${chip.label}`}
+        className="flex size-6 shrink-0 items-center justify-center rounded-full text-[#877275] transition-colors duration-150 hover:bg-[#e9e1d9] hover:text-[#1d1b19]"
+      >
+        <PhosphorIcon icon={X} size={11} color="currentColor" weight="bold" />
+      </button>
+      <span>{chip.label}</span>
+    </span>
+  )
+}
+
+/** Card shell shared by every section — icon circle, title and a real
+ * item-count badge, same language as `ChecklistCategoryCard`/`Card`
+ * elsewhere in the app. */
+function PersonalAreaCard({
+  icon,
+  title,
+  count,
+  isEmpty,
+  emptyMessage,
+  children,
+}: {
+  icon: ReactNode
+  title: string
+  count: number
+  isEmpty: boolean
+  emptyMessage: string
+  children: ReactNode
+}) {
   return (
     <div className="flex h-full flex-col gap-3 rounded-xl border border-[#f0e8e0] bg-white p-4 shadow-[0px_1px_1px_rgba(0,0,0,0.05)]">
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <span aria-hidden className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[rgba(255,217,222,0.4)]">
-            <PhosphorIcon icon={icon} size={22} weight="duotone" color="#6f1e35" />
+            {icon}
           </span>
           <span className="truncate text-[18px] font-semibold leading-6 text-[#1d1b19]">{title}</span>
         </div>
@@ -64,36 +90,136 @@ function PersonalAreaCard({ icon, title, count, preview, hasMore }: PersonalSect
         </span>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 border-t border-[#f0e8e0] pt-3">
-        {preview.map((item) => (
-          <span
-            key={item}
-            className="rounded-full bg-[#faf7f4] px-3 py-1 text-[14px] leading-5 text-[#544245]"
-          >
-            {item}
-          </span>
-        ))}
-        {hasMore ? <span className="px-1 text-[14px] leading-5 font-medium text-[#6f1e35]">עוד...</span> : null}
+      <div className="border-t border-[#f0e8e0] pt-3">
+        {isEmpty ? (
+          <p className="text-[14px] leading-5 text-[#877275]">{emptyMessage}</p>
+        ) : (
+          children
+        )}
       </div>
     </div>
   )
 }
 
-type PersonalAreaScreenProps = {
-  onBack: () => void
-}
+export function PersonalAreaScreen({
+  onBack,
+  names,
+  nameFavorites,
+  onToggleNameFavorite,
+  gearChecked,
+  onToggleGear,
+  leavingChecked,
+  onToggleLeaving,
+  professionalFavorites,
+  onToggleProfessionalFavorite,
+}: PersonalAreaScreenProps) {
+  // ---- Things I Like — checked "לפני שיוצאים" items --------------------
+  const likedItems: Chip[] = LEAVING_CATEGORIES.flatMap((category) =>
+    category.items
+      .filter((item) => leavingChecked.has(item.id))
+      .map((item) => ({
+        key: item.id,
+        label: item.label,
+        onRemove: () => onToggleLeaving(item.id),
+      })),
+  )
 
-export function PersonalAreaScreen({ onBack }: PersonalAreaScreenProps) {
-  // Empty across the board only when every section has nothing saved in it —
-  // not per-section, since a single empty category (e.g. no saved
-  // professionals yet) is still a normal, populated Personal Area.
-  const hasAnyItems = SECTIONS.some((section) => section.preview.length > 0)
+  // ---- Selected Baby Equipment — checked gear items, grouped by their
+  // original checklist category, per the brief. --------------------------
+  const gearGroups = GEAR_CATEGORIES.map((category) => ({
+    id: category.id,
+    title: category.title,
+    icon: category.icon,
+    items: category.items.filter((item) => gearChecked.has(item.id)),
+  })).filter((group) => group.items.length > 0)
+  const gearCount = gearGroups.reduce((sum, g) => sum + g.items.length, 0)
+
+  // ---- Favorite Professionals --------------------------------------------
+  const favoriteProfessionals: Chip[] = PROFESSIONALS.filter((p) => professionalFavorites.has(p.id)).map((p) => ({
+    key: p.id,
+    label: p.name,
+    onRemove: () => onToggleProfessionalFavorite(p.id),
+  }))
+
+  // ---- Favorite Names -----------------------------------------------------
+  const favoriteNames: Chip[] = names
+    .filter((n) => nameFavorites.get(n.nameId))
+    .map((n) => ({
+      key: n.nameId,
+      label: n.text,
+      onRemove: () => onToggleNameFavorite(n.nameId),
+    }))
+
+  const hasAnyItems =
+    likedItems.length > 0 || gearGroups.length > 0 || favoriteProfessionals.length > 0 || favoriteNames.length > 0
 
   const content = hasAnyItems ? (
     <div className="mt-4 grid max-w-[1200px] grid-cols-1 gap-4 lg:grid-cols-2">
-      {SECTIONS.map((section) => (
-        <PersonalAreaCard key={section.id} {...section} />
-      ))}
+      <PersonalAreaCard
+        icon={<PhosphorIcon icon={Heart} size={22} weight="duotone" color="#6f1e35" />}
+        title="דברים שאהבתי"
+        count={likedItems.length}
+        isEmpty={likedItems.length === 0}
+        emptyMessage="עדיין לא שמרת כאן דברים. סמנו פריטים ברשימת ״לפני שיוצאים״ כדי לראות אותם כאן."
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          {likedItems.map((chip) => (
+            <RemovableChip key={chip.key} chip={chip} />
+          ))}
+        </div>
+      </PersonalAreaCard>
+
+      <PersonalAreaCard
+        icon={<PhosphorIcon icon={Basket} size={22} weight="duotone" color="#6f1e35" />}
+        title="ציוד שנבחר"
+        count={gearCount}
+        isEmpty={gearGroups.length === 0}
+        emptyMessage="עדיין לא שמרת כאן דברים. סמנו פריטים ברשימת ״ציוד לתינוק״ כדי לראות אותם כאן."
+      >
+        <div className="flex flex-col gap-3">
+          {gearGroups.map((group) => (
+            <div key={group.id} className="flex flex-col gap-1.5">
+              <div className="flex items-center gap-1.5 text-[13px] font-semibold text-[#877275]">
+                <PhosphorIcon icon={group.icon} size={14} weight="duotone" color="#877275" />
+                <span>{group.title}</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {group.items.map((item) => (
+                  <RemovableChip key={item.id} chip={{ key: item.id, label: item.label, onRemove: () => onToggleGear(item.id) }} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </PersonalAreaCard>
+
+      <PersonalAreaCard
+        icon={<PhosphorIcon icon={UsersThree} size={22} weight="duotone" color="#6f1e35" />}
+        title="בעלי מקצוע מועדפים"
+        count={favoriteProfessionals.length}
+        isEmpty={favoriteProfessionals.length === 0}
+        emptyMessage="עדיין לא שמרת כאן דברים. סמנו לב ליד בעלי מקצוע כדי לראות אותם כאן."
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          {favoriteProfessionals.map((chip) => (
+            <RemovableChip key={chip.key} chip={chip} />
+          ))}
+        </div>
+      </PersonalAreaCard>
+
+      <PersonalAreaCard
+        icon={<PhosphorIcon icon={Heart} size={22} weight="duotone" color="#6f1e35" />}
+        title="שמות מועדפים"
+        count={favoriteNames.length}
+        isEmpty={favoriteNames.length === 0}
+        emptyMessage="עדיין לא שמרת כאן דברים. סמנו לב ליד שם כדי לראות אותו כאן."
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          {favoriteNames.map((chip) => (
+            <RemovableChip key={chip.key} chip={chip} />
+          ))}
+        </div>
+      </PersonalAreaCard>
     </div>
   ) : (
     <div className="mt-4 max-w-[1200px]">

@@ -134,23 +134,22 @@ type UseProfessionalsResult = {
   sort: ProfessionalSort
   setSort: (sort: ProfessionalSort) => void
   results: Professional[]
-  favorites: Set<string>
-  toggleFavorite: (id: string) => void
 }
 
 /**
- * All state and derived data for the בעלי מקצוע directory, entirely local —
- * there is no professionals table in Supabase yet (see data/professionals.ts),
- * so this mirrors useNames.ts's shape without the network round-trip.
- * Favorites are session-only, same as the Hospital Bag / Baby Gear checklist
- * state: real per-user persistence is a follow-up once a table exists.
+ * Category/search/filter/sort state and derived results for the בעלי מקצוע
+ * directory, entirely local — there is no professionals table in Supabase
+ * yet (see data/professionals.ts), so this mirrors useNames.ts's shape
+ * without the network round-trip. Favorites are NOT part of this hook —
+ * see `useProfessionalFavorites` below — since "אזור אישי" needs the exact
+ * same favorites Set this screen uses, not a second instance scoped to
+ * whichever component happens to call this hook.
  */
 export function useProfessionals(): UseProfessionalsResult {
   const [category, setCategoryState] = useState<ProfessionalCategory>("mohel")
   const [search, setSearch] = useState("")
   const [filters, setFiltersState] = useState<ProfessionalFiltersValue>(EMPTY_PROFESSIONAL_FILTERS)
   const [sort, setSort] = useState<ProfessionalSort>("relevance")
-  const [favorites, setFavorites] = useState<Set<string>>(new Set())
 
   // Switching category clears category-specific filters (a lactation
   // specialty has no meaning once you're looking at doulas) but keeps the
@@ -161,15 +160,6 @@ export function useProfessionals(): UseProfessionalsResult {
   }
 
   const setFilters = (next: ProfessionalFiltersValue) => setFiltersState(next)
-
-  const toggleFavorite = (id: string) => {
-    setFavorites((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
 
   const results = useMemo(() => {
     const filtered = PROFESSIONALS.filter(
@@ -187,5 +177,33 @@ export function useProfessionals(): UseProfessionalsResult {
     return sortProfessionals(filtered, sort)
   }, [category, search, filters, sort])
 
-  return { category, setCategory, search, setSearch, filters, setFilters, sort, setSort, results, favorites, toggleFavorite }
+  return { category, setCategory, search, setSearch, filters, setFilters, sort, setSort, results }
+}
+
+export type UseProfessionalFavoritesResult = {
+  favorites: Set<string>
+  toggleFavorite: (id: string) => void
+}
+
+/**
+ * Which professionals the person has favorited — lifted out of
+ * `useProfessionals` and called once in App.tsx, so `ProfessionalsScreen`
+ * and `PersonalAreaScreen` share this exact Set instead of each holding
+ * their own copy. Session-only for now, same as the checklist screens'
+ * checked-state: real per-user persistence is a follow-up once a
+ * professionals table exists.
+ */
+export function useProfessionalFavorites(): UseProfessionalFavoritesResult {
+  const [favorites, setFavorites] = useState<Set<string>>(new Set())
+
+  const toggleFavorite = (id: string) => {
+    setFavorites((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  return { favorites, toggleFavorite }
 }
