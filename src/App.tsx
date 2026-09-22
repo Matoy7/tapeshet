@@ -99,7 +99,14 @@ export default function App() {
   // second, different navigation scheme. "הכנת תיק לידה" has no row of its
   // own here any more — it's a category inside "ציוד לתינוק" (see
   // BabyGearScreen.tsx), which is where its drawer entry now points.
+  // "אזור אישי" sits first, same as the desktop sidebar's NAV_GROUPS above.
   const mobileCategories: MobileCategoryItem[] = [
+    {
+      id: "personal",
+      label: "אזור אישי",
+      icon: BookmarkSimple,
+      onSelect: () => setMobileView("personal"),
+    },
     {
       id: "browse",
       label: "בחירת שם",
