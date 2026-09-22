@@ -4,7 +4,6 @@ type HomeCard = {
   key: string
   img: string
   title: string
-  subtitle: string
   onNavigate?: () => void
 }
 
@@ -27,10 +26,10 @@ type HomeScreenProps = {
  */
 export function HomeScreen({ onNavigateToNames, onNavigateToProfessionals, onNavigateToGear, onNavigateToLeaving }: HomeScreenProps) {
   const cards: HomeCard[] = [
-    { key: "professionals", img: assets.homeProfessionals, title: "בעלי מקצוע", subtitle: "מי יכול לעזור?", onNavigate: onNavigateToProfessionals },
-    { key: "names", img: assets.homeNames, title: "בחירת שם", subtitle: "מצאתם כבר שם?", onNavigate: onNavigateToNames },
-    { key: "gear", img: assets.homeBabyGear, title: "ציוד לתינוק", subtitle: "מה עדיין חסר?", onNavigate: onNavigateToGear },
-    { key: "leaving", img: assets.homeLeaving, title: "לפני שיוצאים", subtitle: "לא לשכוח כלום.", onNavigate: onNavigateToLeaving },
+    { key: "professionals", img: assets.homeProfessionals, title: "בעלי מקצוע", onNavigate: onNavigateToProfessionals },
+    { key: "names", img: assets.homeNames, title: "בחירת שם", onNavigate: onNavigateToNames },
+    { key: "gear", img: assets.homeBabyGear, title: "ציוד לתינוק", onNavigate: onNavigateToGear },
+    { key: "leaving", img: assets.homeLeaving, title: "לפני שיוצאים", onNavigate: onNavigateToLeaving },
   ]
 
   return (
@@ -65,7 +64,6 @@ export function HomeScreen({ onNavigateToNames, onNavigateToProfessionals, onNav
           >
             <img src={card.img} alt="" aria-hidden className="mb-1 h-14 w-14 object-contain" />
             <p className="text-[17px] font-bold leading-[23px] text-[#6f1e35]">{card.title}</p>
-            <p className="text-[13px] leading-[18px] text-[#8a5a63]">{card.subtitle}</p>
           </button>
         ))}
       </div>
