@@ -18,8 +18,13 @@ import type { Icon as PhosphorIconComponent } from "@phosphor-icons/react"
  * mobile-hero / desktop-DesktopScreenHeader split rather than being
  * desktop-only.
  *
- * Every count/preview below is realistic placeholder content, per the
- * brief — swap in real saved-item data later without touching the layout.
+ * There's no real saved-items data source wired up yet (see the brief: UI
+ * and navigation structure only, no new data layer), so every section
+ * starts with zero items — the honest state given nothing is actually
+ * saved anywhere yet — and the screen falls back to the empty-state
+ * illustration below. `SECTIONS` is still the real per-category shape
+ * (icon, title, count, preview) so wiring in real saved-item data later is
+ * a matter of filling these arrays in, not touching the layout.
  */
 type PersonalSection = {
   id: string
@@ -31,45 +36,11 @@ type PersonalSection = {
 }
 
 const SECTIONS: PersonalSection[] = [
-  {
-    id: "names",
-    icon: Heart,
-    title: "שמות שאהבתי",
-    count: "12 שמות",
-    preview: ["תמר", "אלה", "נועה", "מאיה"],
-    hasMore: true,
-  },
-  {
-    id: "gear",
-    icon: Basket,
-    title: "ציוד לתינוק",
-    count: "18 פריטים",
-    preview: ["עגלה", "מיטה", "מנשא", "כיסא בטיחות"],
-    hasMore: true,
-  },
-  {
-    id: "hospitalBag",
-    icon: Suitcase,
-    title: "תיק לידה",
-    count: "14 פריטים",
-    preview: ["תעודת זהות", "בגדים", "מטען", "מסמכים"],
-    hasMore: true,
-  },
-  {
-    id: "leaving",
-    icon: CarSimple,
-    title: "לפני שיוצאים",
-    count: "9 רשימות",
-    preview: ["טיול בטבע", "ביקור משפחה", "קניות"],
-    hasMore: true,
-  },
-  {
-    id: "professionals",
-    icon: UsersThree,
-    title: "בעלי מקצוע",
-    count: "5 בעלי מקצוע",
-    preview: ["יועצת הנקה", "דולה", "יועצת שינה"],
-  },
+  { id: "names", icon: Heart, title: "שמות שאהבתי", count: "0 שמות", preview: [] },
+  { id: "gear", icon: Basket, title: "ציוד לתינוק", count: "0 פריטים", preview: [] },
+  { id: "hospitalBag", icon: Suitcase, title: "תיק לידה", count: "0 פריטים", preview: [] },
+  { id: "leaving", icon: CarSimple, title: "לפני שיוצאים", count: "0 רשימות", preview: [] },
+  { id: "professionals", icon: UsersThree, title: "בעלי מקצוע", count: "0 בעלי מקצוע", preview: [] },
 ]
 
 /**
