@@ -39,7 +39,7 @@ import { LeavingScreen } from "@/features/leaving/LeavingScreen"
 import { ProfessionalsScreen } from "@/features/professionals/ProfessionalsScreen"
 import { useProfessionalFavorites } from "@/features/professionals/useProfessionals"
 import { PersonalAreaScreen } from "@/features/personalArea/PersonalAreaScreen"
-import { toggleInSet } from "@/lib/toggleInSet"
+import { useSavedItemSet } from "@/lib/useSavedItemSet"
 import { ROUTE_FOR_VIEW, viewForPathname, type MobileView } from "@/lib/screenRoutes"
 import { useIsDesktop } from "@/lib/useIsDesktop"
 import { cn } from "@/lib/cn"
@@ -150,20 +150,6 @@ export default function App() {
   const [linkResult, setLinkResult] = useState<LinkResult | null>(null)
   const [confirmGuestSignOut, setConfirmGuestSignOut] = useState(false)
 
-  // Lifted out of BabyGearScreen/LeavingScreen/ProfessionalsScreen (which
-  // used to each own this as local state) so "אזור אישי" reads and writes
-  // the exact same checked-items/favorites state those screens use — one
-  // shared source of truth per collection, not a second copy that could
-  // drift out of sync. Names already work this way via `useNames` below
-  // (its `favorites` Map is this same kind of App-level shared state).
-  const [gearChecked, setGearChecked] = useState<Set<string>>(new Set())
-  const toggleGear = useCallback((id: string) => setGearChecked((prev) => toggleInSet(prev, id)), [])
-
-  const [leavingChecked, setLeavingChecked] = useState<Set<string>>(new Set())
-  const toggleLeaving = useCallback((id: string) => setLeavingChecked((prev) => toggleInSet(prev, id)), [])
-
-  const { favorites: professionalFavorites, toggleFavorite: toggleProfessionalFavorite } = useProfessionalFavorites()
-
   const providerAvatar = session ? providerAvatarUrl(session.user) : null
 
   useEffect(() => {
@@ -180,6 +166,28 @@ export default function App() {
   }, [])
 
   const userId = session?.user.id
+
+  // Lifted out of BabyGearScreen/LeavingScreen/ProfessionalsScreen (which
+  // used to each own this as local state) so "אזור אישי" reads and writes
+  // the exact same checked-items/favorites state those screens use — one
+  // shared source of truth per collection, not a second copy that could
+  // drift out of sync. Names already work this way via `useNames` below
+  // (its `favorites` Map is this same kind of App-level shared state).
+  // Persisted per-user to gear_checklist/leaving_checklist/
+  // professional_favorites (see src/lib/useSavedItemSet.ts) so selections
+  // survive a page refresh instead of resetting.
+  const { items: gearChecked, toggle: toggleGear } = useSavedItemSet(
+    { table: "gear_checklist", itemColumn: "item_id" },
+    userId,
+  )
+
+  const { items: leavingChecked, toggle: toggleLeaving } = useSavedItemSet(
+    { table: "leaving_checklist", itemColumn: "item_id" },
+    userId,
+  )
+
+  const { favorites: professionalFavorites, toggleFavorite: toggleProfessionalFavorite } =
+    useProfessionalFavorites(userId)
 
   // Logged after a short pause in typing, not on every keystroke — the
   // actual search itself stays instant either way, this only debounces

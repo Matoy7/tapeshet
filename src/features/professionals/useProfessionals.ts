@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react"
 import { PROFESSIONALS, type Professional, type ProfessionalCategory } from "@/data/professionals"
+import { useSavedItemSet } from "@/lib/useSavedItemSet"
 
 export type ProfessionalFiltersValue = {
   area: string[]
@@ -189,21 +190,15 @@ export type UseProfessionalFavoritesResult = {
  * Which professionals the person has favorited — lifted out of
  * `useProfessionals` and called once in App.tsx, so `ProfessionalsScreen`
  * and `PersonalAreaScreen` share this exact Set instead of each holding
- * their own copy. Session-only for now, same as the checklist screens'
- * checked-state: real per-user persistence is a follow-up once a
- * professionals table exists.
+ * their own copy. Persisted to the `professional_favorites` table (see
+ * src/lib/useSavedItemSet.ts) so it survives a refresh, the same way name
+ * favorites already do.
  */
-export function useProfessionalFavorites(): UseProfessionalFavoritesResult {
-  const [favorites, setFavorites] = useState<Set<string>>(new Set())
-
-  const toggleFavorite = (id: string) => {
-    setFavorites((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
+export function useProfessionalFavorites(userId: string | undefined): UseProfessionalFavoritesResult {
+  const { items: favorites, toggle: toggleFavorite } = useSavedItemSet(
+    { table: "professional_favorites", itemColumn: "professional_id" },
+    userId,
+  )
 
   return { favorites, toggleFavorite }
 }
