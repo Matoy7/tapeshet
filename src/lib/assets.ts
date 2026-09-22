@@ -65,6 +65,10 @@ export const assets = {
   /** Project-authored to match the stroke-icon language above (24px grid,
    *  same weight and colour as the heart icons), for the "העתק קישור" row. */
   iconLink: `${base}/link.svg`,
+  /** Empty-state illustration (brain mascot with a checklist) — the user's
+   *  own supplied artwork, used wherever a saved-items list has nothing in
+   *  it yet (currently: אזור אישי, mobile and desktop). */
+  emptyStateBrain: `${base}/empty-state-brain.png`,
 } as const
 
 export type AssetKey = keyof typeof assets

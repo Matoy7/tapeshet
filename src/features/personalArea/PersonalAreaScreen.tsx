@@ -1,5 +1,7 @@
 import { DesktopScreenHeader } from "@/components/layout/DesktopScreenHeader"
+import { EmptyState } from "@/components/ui/EmptyState"
 import { Icon as PhosphorIcon } from "@/components/ui/PhosphorIcon"
+import { assets } from "@/lib/assets"
 import { BookmarkSimple, Heart, Basket, Suitcase, CarSimple, UsersThree } from "@phosphor-icons/react"
 import type { Icon as PhosphorIconComponent } from "@phosphor-icons/react"
 
@@ -111,11 +113,24 @@ type PersonalAreaScreenProps = {
 }
 
 export function PersonalAreaScreen({ onBack }: PersonalAreaScreenProps) {
-  const grid = (
+  // Empty across the board only when every section has nothing saved in it —
+  // not per-section, since a single empty category (e.g. no saved
+  // professionals yet) is still a normal, populated Personal Area.
+  const hasAnyItems = SECTIONS.some((section) => section.preview.length > 0)
+
+  const content = hasAnyItems ? (
     <div className="mt-4 grid max-w-[1200px] grid-cols-1 gap-4 lg:grid-cols-2">
       {SECTIONS.map((section) => (
         <PersonalAreaCard key={section.id} {...section} />
       ))}
+    </div>
+  ) : (
+    <div className="mt-4 max-w-[1200px]">
+      <EmptyState
+        image={assets.emptyStateBrain}
+        title="אין עדיין פריטים להצגה"
+        description="כשתוסיפי רשימות הן יופיעו כאן"
+      />
     </div>
   )
 
@@ -144,10 +159,10 @@ export function PersonalAreaScreen({ onBack }: PersonalAreaScreenProps) {
           <p className="mt-1 text-[14px] leading-[22px] text-[#544245]">כל מה ששמרת בטפשת במקום אחד</p>
         </div>
 
-        {grid}
+        {content}
       </div>
 
-      {/* Desktop — compact header + the same card grid. */}
+      {/* Desktop — compact header + the same card grid (or empty state). */}
       <div className="hidden sm:block">
         <DesktopScreenHeader
           icon={<PhosphorIcon icon={BookmarkSimple} size={26} weight="duotone" color="#6f1e35" />}
@@ -155,7 +170,7 @@ export function PersonalAreaScreen({ onBack }: PersonalAreaScreenProps) {
           subtitle="כל מה ששמרת בטפשת במקום אחד"
         />
 
-        {grid}
+        {content}
       </div>
     </div>
   )
