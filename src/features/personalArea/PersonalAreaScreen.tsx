@@ -4,19 +4,17 @@ import { BookmarkSimple, Heart, Basket, Suitcase, CarSimple, UsersThree } from "
 import type { Icon as PhosphorIconComponent } from "@phosphor-icons/react"
 
 /**
- * Desktop-only "אזור אישי" (Personal Area) dashboard: a read-only overview
- * of everything the person has saved across the product — saved names,
- * saved gear, hospital-bag progress, outing lists, saved professionals —
- * each as one preview card that links nowhere yet (see the brief: UI and
- * navigation structure only, no new data layer).
+ * "אזור אישי" (Personal Area) dashboard: a read-only overview of everything
+ * the person has saved across the product — saved names, saved gear,
+ * hospital-bag progress, outing lists, saved professionals — each as one
+ * preview card that links nowhere yet (see the brief: UI and navigation
+ * structure only, no new data layer).
  *
- * Reachable only through the desktop sidebar's own "אזור אישי" item (see
- * App.tsx's NAV_GROUPS) — there is no mobile entry point yet, so this
- * component assumes the `lg:` desktop layout throughout and doesn't attempt
- * a mobile variant of its own, unlike its sibling screens (Gear/Leaving/
- * Professionals), which each render both. The mobile "אזור אישי" button on
- * the Home screen stays exactly as it is: present, unstyled-inert, no
- * onClick.
+ * Reachable from the desktop sidebar's own "אזור אישי" item (App.tsx's
+ * NAV_GROUPS) and, on mobile, from the Home screen's "אזור אישי" button —
+ * so like its sibling screens (Gear/Leaving/Professionals) it follows the
+ * mobile-hero / desktop-DesktopScreenHeader split rather than being
+ * desktop-only.
  *
  * Every count/preview below is realistic placeholder content, per the
  * brief — swap in real saved-item data later without touching the layout.
@@ -108,19 +106,56 @@ function PersonalAreaCard({ icon, title, count, preview, hasMore }: PersonalSect
   )
 }
 
-export function PersonalAreaScreen() {
-  return (
-    <div className="hidden sm:block" dir="rtl">
-      <DesktopScreenHeader
-        icon={<PhosphorIcon icon={BookmarkSimple} size={26} weight="duotone" color="#6f1e35" />}
-        title="אזור אישי"
-        subtitle="כל מה ששמרת בטפשת במקום אחד"
-      />
+type PersonalAreaScreenProps = {
+  onBack: () => void
+}
 
-      <div className="mt-4 grid max-w-[1200px] grid-cols-1 gap-4 lg:grid-cols-2">
-        {SECTIONS.map((section) => (
-          <PersonalAreaCard key={section.id} {...section} />
-        ))}
+export function PersonalAreaScreen({ onBack }: PersonalAreaScreenProps) {
+  const grid = (
+    <div className="mt-4 grid max-w-[1200px] grid-cols-1 gap-4 lg:grid-cols-2">
+      {SECTIONS.map((section) => (
+        <PersonalAreaCard key={section.id} {...section} />
+      ))}
+    </div>
+  )
+
+  return (
+    <div className="px-1 pb-6 pt-2 sm:px-0" dir="rtl">
+      {/* Mobile hero — same convention as Gear/Leaving/Professionals: a back
+          link, a centered icon standing in for those screens' illustration
+          (there's no dedicated Personal Area artwork), title and subtitle. */}
+      <div className="sm:hidden">
+        <button
+          type="button"
+          onClick={onBack}
+          className="mb-2 flex items-center gap-1 self-end text-[14px] font-medium text-[#6f1e35]"
+        >
+          ← חזרה
+        </button>
+
+        <div className="flex flex-col items-center pb-2 pt-1 text-center">
+          <span
+            aria-hidden
+            className="mb-1 flex size-28 items-center justify-center rounded-full bg-[rgba(255,217,222,0.4)]"
+          >
+            <PhosphorIcon icon={BookmarkSimple} size={48} weight="duotone" color="#6f1e35" />
+          </span>
+          <h1 className="text-[26px] font-black leading-[34px] text-[#6f1e35]">אזור אישי</h1>
+          <p className="mt-1 text-[14px] leading-[22px] text-[#544245]">כל מה ששמרת בטפשת במקום אחד</p>
+        </div>
+
+        {grid}
+      </div>
+
+      {/* Desktop — compact header + the same card grid. */}
+      <div className="hidden sm:block">
+        <DesktopScreenHeader
+          icon={<PhosphorIcon icon={BookmarkSimple} size={26} weight="duotone" color="#6f1e35" />}
+          title="אזור אישי"
+          subtitle="כל מה ששמרת בטפשת במקום אחד"
+        />
+
+        {grid}
       </div>
     </div>
   )

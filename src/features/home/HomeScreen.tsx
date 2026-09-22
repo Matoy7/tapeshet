@@ -12,6 +12,7 @@ type HomeScreenProps = {
   onNavigateToProfessionals: () => void
   onNavigateToGear: () => void
   onNavigateToLeaving: () => void
+  onNavigateToPersonal: () => void
 }
 
 /**
@@ -24,7 +25,13 @@ type HomeScreenProps = {
  * "ציוד לתינוק" as a category (see BabyGearScreen.tsx), so this slot in the
  * 2×2 grid now opens "בעלי מקצוע" instead.
  */
-export function HomeScreen({ onNavigateToNames, onNavigateToProfessionals, onNavigateToGear, onNavigateToLeaving }: HomeScreenProps) {
+export function HomeScreen({
+  onNavigateToNames,
+  onNavigateToProfessionals,
+  onNavigateToGear,
+  onNavigateToLeaving,
+  onNavigateToPersonal,
+}: HomeScreenProps) {
   const cards: HomeCard[] = [
     { key: "professionals", img: assets.homeProfessionals, title: "בעלי מקצוע", onNavigate: onNavigateToProfessionals },
     { key: "names", img: assets.homeNames, title: "בחירת שם", onNavigate: onNavigateToNames },
@@ -73,11 +80,11 @@ export function HomeScreen({ onNavigateToNames, onNavigateToProfessionals, onNav
         ))}
       </div>
 
-      {/* Non-functional for now, per the request — no onClick, no
-          navigation, no state. Purely the visual element. */}
       <button
         type="button"
-        className="mt-4 flex h-14 w-full items-center justify-center rounded-full bg-[#6f1e35] text-[17px] font-bold text-white"
+        onClick={onNavigateToPersonal}
+        onTouchStart={() => {}}
+        className="mt-4 flex h-14 w-full items-center justify-center rounded-full bg-[#6f1e35] text-[17px] font-bold text-white transition-transform duration-100 active:scale-[0.98]"
       >
         אזור אישי
       </button>

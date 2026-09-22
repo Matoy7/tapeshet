@@ -143,15 +143,6 @@ export default function App() {
     navigate(ROUTE_FOR_VIEW.gear, { replace: true })
   }, [readyForDashboard, isDesktop, mobileView, navigate])
 
-  // "אזור אישי" is desktop-only (see PersonalAreaScreen.tsx) — there's no
-  // mobile UI that can navigate here, but guard the direct-URL case the
-  // same way the effect above guards desktop landing on the mobile-only
-  // Home screen.
-  useEffect(() => {
-    if (!readyForDashboard || isDesktop || mobileView !== "personal") return
-    navigate(ROUTE_FOR_VIEW.home, { replace: true })
-  }, [readyForDashboard, isDesktop, mobileView, navigate])
-
   const [filters, setFilters] = useState<NameFiltersValue>(EMPTY_NAME_FILTERS)
   const [sort, setSort] = useState<"alphabetical" | "popularity">("alphabetical")
   const [linkResult, setLinkResult] = useState<LinkResult | null>(null)
@@ -316,6 +307,7 @@ export default function App() {
             onNavigateToProfessionals={() => setMobileView("professionals")}
             onNavigateToGear={() => setMobileView("gear")}
             onNavigateToLeaving={() => setMobileView("leaving")}
+            onNavigateToPersonal={() => setMobileView("personal")}
           />
         </div>
 
@@ -331,12 +323,11 @@ export default function App() {
           <ProfessionalsScreen onBack={() => setMobileView("home")} />
         </div>
 
-        {/* Desktop-only, like Home is mobile-only — see the redirect effect
-            above. PersonalAreaScreen renders nothing below `sm:` itself, but
-            this wrapper also stays hidden below `sm:` so it never occupies
-            layout space if the redirect hasn't fired yet. */}
-        <div className={cn(mobileView === "personal" ? "hidden sm:block" : "hidden")}>
-          <PersonalAreaScreen />
+        {/* Reachable from the mobile Home screen's "אזור אישי" button now too
+            (see HomeScreen.tsx), so — like Gear/Leaving/Browse/Professionals
+            — this must stay visible at every breakpoint when active. */}
+        <div className={cn(mobileView === "personal" ? undefined : "hidden")}>
+          <PersonalAreaScreen onBack={() => setMobileView("home")} />
         </div>
 
         {/* The existing name catalogue — its own content byte-for-byte
