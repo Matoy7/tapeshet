@@ -81,7 +81,7 @@ function Chip({ chip }: { chip: ChipData }) {
 
 type LeavingScreenProps = {
   /** Lifted to App.tsx (not local state here anymore) so "אזור אישי" can
-   * show the exact same checked items under "דברים שאהבתי" — one shared
+   * show the exact same checked items under "דברים שצריך לעשות לפני יציאה" — one shared
    * Set, not a second copy that could drift out of sync. */
   checked: Set<string>
   onToggle: (id: string) => void

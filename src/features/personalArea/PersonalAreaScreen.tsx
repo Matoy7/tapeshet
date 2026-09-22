@@ -149,7 +149,7 @@ export function PersonalAreaScreen({
       {likedItems.length > 0 ? (
         <PersonalAreaCard
           icon={<PhosphorIcon icon={Heart} size={22} weight="duotone" color="#6f1e35" />}
-          title="דברים שאהבתי"
+          title="דברים שצריך לעשות לפני יציאה"
           count={likedItems.length}
         >
           <div className="flex flex-wrap items-center gap-2">
