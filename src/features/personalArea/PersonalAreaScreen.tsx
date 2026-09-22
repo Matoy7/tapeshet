@@ -104,16 +104,17 @@ export function PersonalAreaScreen({
   professionalFavorites,
   onToggleProfessionalFavorite,
 }: PersonalAreaScreenProps) {
-  // ---- Things I Like — checked "לפני שיוצאים" items --------------------
-  const likedItems: Chip[] = LEAVING_CATEGORIES.flatMap((category) =>
-    category.items
-      .filter((item) => leavingChecked.has(item.id))
-      .map((item) => ({
-        key: item.id,
-        label: item.label,
-        onRemove: () => onToggleLeaving(item.id),
-      })),
-  )
+  // ---- דברים שצריך לעשות לפני יציאה — checked "לפני שיוצאים" items,
+  // grouped by their original checklist sub-category (same pattern as the
+  // gear section below), so e.g. "רכב ונסיעה" vs "מסמכים וחפצים חשובים"
+  // stays visible instead of one flat pool of items. --------------------
+  const leavingGroups = LEAVING_CATEGORIES.map((category) => ({
+    id: category.id,
+    title: category.title,
+    icon: category.icon,
+    items: category.items.filter((item) => leavingChecked.has(item.id)),
+  })).filter((group) => group.items.length > 0)
+  const leavingCount = leavingGroups.reduce((sum, g) => sum + g.items.length, 0)
 
   // ---- Selected Baby Equipment — checked gear items, grouped by their
   // original checklist category, per the brief. --------------------------
@@ -142,19 +143,32 @@ export function PersonalAreaScreen({
     }))
 
   const hasAnyItems =
-    likedItems.length > 0 || gearGroups.length > 0 || favoriteProfessionals.length > 0 || favoriteNames.length > 0
+    leavingGroups.length > 0 || gearGroups.length > 0 || favoriteProfessionals.length > 0 || favoriteNames.length > 0
 
   const content = hasAnyItems ? (
     <div className="mt-4 grid max-w-[1200px] grid-cols-1 gap-4 lg:grid-cols-2">
-      {likedItems.length > 0 ? (
+      {leavingGroups.length > 0 ? (
         <PersonalAreaCard
           icon={<PhosphorIcon icon={Heart} size={22} weight="duotone" color="#6f1e35" />}
           title="דברים שצריך לעשות לפני יציאה"
-          count={likedItems.length}
+          count={leavingCount}
         >
-          <div className="flex flex-wrap items-center gap-2">
-            {likedItems.map((chip) => (
-              <RemovableChip key={chip.key} chip={chip} />
+          <div className="flex flex-col gap-3">
+            {leavingGroups.map((group) => (
+              <div key={group.id} className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-1.5 text-[13px] font-semibold text-[#877275]">
+                  <PhosphorIcon icon={group.icon} size={14} weight="duotone" color="#877275" />
+                  <span>{group.title}</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {group.items.map((item) => (
+                    <RemovableChip
+                      key={item.id}
+                      chip={{ key: item.id, label: item.label, onRemove: () => onToggleLeaving(item.id) }}
+                    />
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </PersonalAreaCard>
