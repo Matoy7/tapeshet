@@ -2,12 +2,13 @@ import type { ReactNode } from "react"
 import { DesktopScreenHeader } from "@/components/layout/DesktopScreenHeader"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { Icon as PhosphorIcon } from "@/components/ui/PhosphorIcon"
+import { Button } from "@/components/ui/Button"
 import { assets } from "@/lib/assets"
 import { GEAR_CATEGORIES } from "@/data/babyGear"
 import { LEAVING_CATEGORIES } from "@/data/leaving"
 import { PROFESSIONALS } from "@/data/professionals"
 import type { NameCardData } from "@/features/names/NameCard"
-import { Heart, Basket, UsersThree, X } from "@phosphor-icons/react"
+import { Heart, Basket, UsersThree, WhatsappLogo, X } from "@phosphor-icons/react"
 
 /**
  * "אזור אישי" (Personal Area) — the single place that gathers everything the
@@ -93,6 +94,47 @@ function PersonalAreaCard({
   )
 }
 
+type LeavingGroup = { id: string; title: string; items: { id: string; label: string }[] }
+type GearGroup = { id: string; title: string; items: { id: string; label: string }[] }
+
+/**
+ * Turns whatever's currently in "אזור אישי" into one clean, readable Hebrew
+ * message for the "שלחי את הרשימה בוואטסאפ" share action below — the exact
+ * same section titles the cards on screen use, so the shared text and the
+ * page never say two different things for the same list. A section with
+ * nothing in it is left out entirely, same as it is on screen.
+ */
+function buildWhatsAppShareText(
+  leavingGroups: LeavingGroup[],
+  gearGroups: GearGroup[],
+  favoriteProfessionals: Chip[],
+  favoriteNames: Chip[],
+): string {
+  const sections: string[] = []
+
+  if (leavingGroups.length > 0) {
+    const items = leavingGroups.flatMap((group) => group.items.map((item) => `• ${item.label}`))
+    sections.push(["♡ דברים שצריך לעשות לפני יציאה", ...items].join("\n"))
+  }
+
+  if (gearGroups.length > 0) {
+    const items = gearGroups.flatMap((group) => group.items.map((item) => `• ${item.label}`))
+    sections.push(["🛒 ציוד שנבחר", ...items].join("\n"))
+  }
+
+  if (favoriteProfessionals.length > 0) {
+    const items = favoriteProfessionals.map((chip) => `• ${chip.label}`)
+    sections.push(["👥 בעלי מקצוע מועדפים", ...items].join("\n"))
+  }
+
+  if (favoriteNames.length > 0) {
+    const items = favoriteNames.map((chip) => `• ${chip.label}`)
+    sections.push(["💗 שמות מועדפים", ...items].join("\n"))
+  }
+
+  return ["הדברים שלי בטפשת 💗", "", ...sections].join("\n\n")
+}
+
 export function PersonalAreaScreen({
   names,
   nameFavorites,
@@ -144,6 +186,32 @@ export function PersonalAreaScreen({
 
   const hasAnyItems =
     leavingGroups.length > 0 || gearGroups.length > 0 || favoriteProfessionals.length > 0 || favoriteNames.length > 0
+
+  // Opens WhatsApp's own share/deep-link (wa.me) with the whole page's
+  // contents pre-filled as the message — the app launches on a phone if
+  // it's installed, WhatsApp Web otherwise, exactly like any other "share
+  // to WhatsApp" button. Nothing to persist or send through our own
+  // backend for this — it's just handing the text to WhatsApp.
+  const shareToWhatsApp = () => {
+    const text = buildWhatsAppShareText(leavingGroups, gearGroups, favoriteProfessionals, favoriteNames)
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer")
+  }
+
+  // Only offered once there's actually something to send — same
+  // has-anything gate the section cards below use.
+  const shareButton = hasAnyItems ? (
+    <div className="mt-4 max-w-[1200px]">
+      <Button
+        variant="primary"
+        size="lg"
+        fullWidth
+        onClick={shareToWhatsApp}
+        iconStart={<PhosphorIcon icon={WhatsappLogo} size={20} weight="fill" color="#ffffff" />}
+      >
+        שלחי את הרשימה בוואטסאפ
+      </Button>
+    </div>
+  ) : null
 
   const content = hasAnyItems ? (
     <div className="mt-4 grid max-w-[1200px] grid-cols-1 gap-4 lg:grid-cols-2">
@@ -253,6 +321,7 @@ export function PersonalAreaScreen({
         </div>
 
         {content}
+        {shareButton}
       </div>
 
       {/* Desktop — compact header + the same card grid (or empty state). */}
@@ -264,6 +333,7 @@ export function PersonalAreaScreen({
         />
 
         {content}
+        {shareButton}
       </div>
     </div>
   )
