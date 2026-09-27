@@ -1,5 +1,5 @@
 import { Cell, Pie, PieChart } from "recharts"
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
+import { ChartContainer, type ChartConfig } from "@/components/ui/chart"
 import {
   CHART_GRID_STROKE,
   CHART_LIGHT_FILL_EDGE,
@@ -175,9 +175,6 @@ export function DonutChart({ segments, total, centerCaption }: DonutChartProps) 
                 ),
               )}
             </Pie>
-            <ChartTooltip
-              content={<ChartTooltipContent hideLabel formatter={(value) => `${value} פריטים`} />}
-            />
           </PieChart>
         </ChartContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">

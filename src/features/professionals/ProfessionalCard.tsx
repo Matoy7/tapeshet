@@ -38,7 +38,16 @@ function RatingRow({ rating, reviewCount }: { rating: number | null; reviewCount
  * "למידע נוסף"). Once revealed, the same control becomes the number itself
  * as a tel: link, so there's still exactly one action, not two.
  */
-export function ShowPhoneButton({ phone, className }: { phone: string; className?: string }) {
+export function ShowPhoneButton({
+  phone,
+  className,
+  hoverEffect = true,
+}: {
+  phone: string
+  className?: string
+  /** Hover feedback on/off — Personal Area turns it off. */
+  hoverEffect?: boolean
+}) {
   const [revealed, setRevealed] = useState(false)
 
   if (revealed) {
@@ -47,7 +56,8 @@ export function ShowPhoneButton({ phone, className }: { phone: string; className
         href={`tel:${phone}`}
         dir="ltr"
         className={cn(
-          "flex h-10 w-full items-center justify-center gap-2 rounded-full bg-[#ffd9de] text-[15px] font-bold text-[#6f1e35] transition-opacity hover:opacity-90",
+          "flex h-10 w-full items-center justify-center gap-2 rounded-full bg-[#ffd9de] text-[15px] font-bold text-[#6f1e35]",
+          hoverEffect && "transition-opacity hover:opacity-90",
           className,
         )}
       >
@@ -61,7 +71,8 @@ export function ShowPhoneButton({ phone, className }: { phone: string; className
       type="button"
       onClick={() => setRevealed(true)}
       className={cn(
-        "flex h-10 w-full items-center justify-center gap-1.5 rounded-full bg-[#ffd9de] text-[15px] font-bold text-[#6f1e35] transition-opacity hover:opacity-90",
+        "flex h-10 w-full items-center justify-center gap-1.5 rounded-full bg-[#ffd9de] text-[15px] font-bold text-[#6f1e35]",
+        hoverEffect && "transition-opacity hover:opacity-90",
         className,
       )}
     >

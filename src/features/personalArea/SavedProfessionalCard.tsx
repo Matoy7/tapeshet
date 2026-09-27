@@ -67,7 +67,7 @@ export function SavedProfessionalCard({ professional: p, onToggleFavorite, onOpe
           aria-pressed
           aria-label="הסירו מהמועדפים"
           onClick={() => onToggleFavorite(p.id)}
-          className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#ffd9de] transition-opacity hover:opacity-90"
+          className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#ffd9de]"
         >
           <PhosphorIcon icon={Heart} size={16} color="#6f1e35" weight="fill" />
         </button>
@@ -117,13 +117,13 @@ export function SavedProfessionalCard({ professional: p, onToggleFavorite, onOpe
           type="button"
           onClick={onOpenDetails}
           className={cn(
-            "flex h-10 min-w-[120px] flex-1 items-center justify-center gap-1.5 rounded-full bg-[#6f1e35] text-[15px] font-bold text-white transition-opacity hover:opacity-90",
+            "flex h-10 min-w-[120px] flex-1 items-center justify-center gap-1.5 rounded-full bg-[#6f1e35] text-[15px] font-bold text-white",
           )}
         >
           לפרטים
           <PhosphorIcon icon={CaretLeft} size={14} color="#ffffff" weight="bold" />
         </button>
-        <ShowPhoneButton phone={p.phone} className="min-w-[120px] flex-1" />
+        <ShowPhoneButton phone={p.phone} className="min-w-[120px] flex-1" hoverEffect={false} />
       </div>
     </article>
   )

@@ -68,7 +68,7 @@ function RemovableChip({ chip }: { chip: Chip }) {
         type="button"
         onClick={chip.onRemove}
         aria-label={`הסרת ${chip.label}`}
-        className="flex size-6 shrink-0 items-center justify-center rounded-full text-[#877275] transition-colors duration-150 hover:bg-[#e9e1d9] hover:text-[#1d1b19]"
+        className="flex size-6 shrink-0 items-center justify-center rounded-full text-[#877275]"
       >
         <PhosphorIcon icon={X} size={11} color="currentColor" weight="bold" />
       </button>
@@ -350,6 +350,7 @@ export function PersonalAreaScreen({
         size="lg"
         fullWidth
         onClick={shareToWhatsApp}
+        hoverEffect={false}
         iconStart={<PhosphorIcon icon={WhatsappLogo} size={20} weight="fill" color="#ffffff" />}
       >
         שלחי את הרשימה בוואטסאפ
@@ -362,6 +363,7 @@ export function PersonalAreaScreen({
       variant="primary"
       size="md"
       onClick={shareToWhatsApp}
+        hoverEffect={false}
       // The shared Button "md" size is 15px everywhere else in the app;
       // overridden here (inline style beats a shared class regardless of
       // stylesheet order) only for this one instance, to meet this page's
