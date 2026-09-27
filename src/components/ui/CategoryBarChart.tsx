@@ -1,5 +1,5 @@
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, XAxis, YAxis } from "recharts"
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
+import { ChartContainer, type ChartConfig } from "@/components/ui/chart"
 import { CHART_GRID_STROKE, CHART_LABEL_COLOR, CHART_TICK_STYLE } from "@/lib/chartTheme"
 
 export type CategoryBar = {
@@ -90,10 +90,8 @@ export function CategoryBarChart({ bars }: { bars: CategoryBar[] }) {
           tick={{ ...CHART_TICK_STYLE, fontWeight: 400 }}
           tickFormatter={(value: number) => `${value}%`}
         />
-        <ChartTooltip
-          cursor={{ fill: CHART_GRID_STROKE, radius: 8 }}
-          content={<ChartTooltipContent formatter={(value) => `${value}%`} />}
-        />
+        {/* No hover tooltip: each bar already prints its % above it and its
+            category below it, so a hover bubble only repeated that. */}
         <Bar dataKey="percent" radius={[8, 8, 0, 0]} maxBarSize={56} isAnimationActive={false}>
           <LabelList
             dataKey="percent"
