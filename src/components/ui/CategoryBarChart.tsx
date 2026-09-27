@@ -15,12 +15,6 @@ const CHART_HEIGHT = 236
  * than its usual single-line tick — without this the second line gets cut
  * off against the chart's own bottom edge. */
 const X_AXIS_HEIGHT = 46
-/** A 0% category is real data and stays visible, but doesn't compete with
- * the categories that actually have progress: a quiet neutral "empty
- * track" fill (not the ramp's own lightest pink, which still reads as "a
- * little progress") and no numeric label — the bars with real progress are
- * the ones the eye should land on first. */
-const EMPTY_BAR_FILL = "#ede7e2"
 
 /** Wraps a category label onto up to two lines under its bar (the same
  * two-line allowance the old line-clamp gave it), since Recharts' own tick
@@ -61,7 +55,11 @@ function CategoryTick({ x, y, payload }: { x: number; y: number; payload: { valu
  * category name below it, a subtle horizontal grid and a light Y-axis
  * scale rather than the app's own hand-rolled SVG bars. Categories read
  * right-to-left (first category rightmost) to match the rest of the RTL
- * page.
+ * page. Callers are expected to only pass categories worth showing (the
+ * Personal Area screen filters out 0%-progress categories before handing
+ * bars here) — with fewer, meaningful bars, a low category gap lets each
+ * one run wide while Recharts' own categorical axis spreads them evenly
+ * across the full chart width regardless of how many there are.
  */
 export function CategoryBarChart({ bars }: { bars: CategoryBar[] }) {
   const config: ChartConfig = Object.fromEntries(
@@ -70,7 +68,7 @@ export function CategoryBarChart({ bars }: { bars: CategoryBar[] }) {
 
   return (
     <ChartContainer config={config} style={{ width: "100%", height: CHART_HEIGHT }}>
-      <BarChart data={bars} margin={{ top: 24, right: 4, left: 4, bottom: 4 }} barCategoryGap="38%">
+      <BarChart data={bars} margin={{ top: 24, right: 4, left: 4, bottom: 4 }} barCategoryGap="20%">
         <CartesianGrid vertical={false} stroke={CHART_GRID_STROKE} strokeDasharray="3 3" />
         <XAxis
           dataKey="label"
@@ -96,21 +94,15 @@ export function CategoryBarChart({ bars }: { bars: CategoryBar[] }) {
           cursor={{ fill: CHART_GRID_STROKE, radius: 8 }}
           content={<ChartTooltipContent formatter={(value) => `${value}%`} />}
         />
-        {/* minPointSize keeps a thin sliver visible for a real 0% value —
-            "real data stays visible" — instead of the bar disappearing
-            entirely, which would read as a rendering gap rather than data. */}
-        <Bar dataKey="percent" radius={[8, 8, 0, 0]} maxBarSize={32} minPointSize={3} isAnimationActive={false}>
+        <Bar dataKey="percent" radius={[8, 8, 0, 0]} maxBarSize={56} isAnimationActive={false}>
           <LabelList
             dataKey="percent"
             position="top"
-            // A 0% bar keeps its place (real data stays visible) but earns
-            // no label — with several 0% categories, printing "0%" over
-            // each one is exactly the noise this pass is meant to remove.
-            formatter={(value: number) => (value > 0 ? `${value}%` : "")}
+            formatter={(value: number) => `${value}%`}
             style={{ fill: CHART_LABEL_COLOR, fontSize: 16, fontWeight: 700, fontFamily: "var(--font-sans)" }}
           />
           {bars.map((bar) => (
-            <Cell key={bar.id} fill={bar.percent > 0 ? bar.color : EMPTY_BAR_FILL} />
+            <Cell key={bar.id} fill={bar.color} />
           ))}
         </Bar>
       </BarChart>

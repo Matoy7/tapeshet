@@ -365,7 +365,6 @@ export default function App() {
             nameFavorites={favorites}
             onToggleNameFavorite={toggleFavorite}
             gearChecked={gearChecked}
-            onToggleGear={toggleGear}
             leavingChecked={leavingChecked}
             onToggleLeaving={toggleLeaving}
             professionalFavorites={professionalFavorites}

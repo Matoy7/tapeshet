@@ -16,7 +16,6 @@ import { CATEGORY_TABS, CATEGORY_LABELS } from "@/features/professionals/filterO
 import type { NameCardData } from "@/features/names/NameCard"
 import {
   Heart,
-  Basket,
   UsersThree,
   WhatsappLogo,
   X,
@@ -57,8 +56,11 @@ type PersonalAreaScreenProps = {
   names: NameCardData[]
   nameFavorites: Map<string, boolean>
   onToggleNameFavorite: (nameId: string) => void
+  // No onToggleGear here: ציוד שנבחר has no card of its own on this screen
+  // any more (see gearGroups below) so there's nothing left to un-check
+  // from — gearChecked itself stays, purely to compute the WhatsApp share
+  // text's "🛒 ציוד שנבחר" section.
   gearChecked: Set<string>
-  onToggleGear: (id: string) => void
   leavingChecked: Set<string>
   onToggleLeaving: (id: string) => void
   professionalFavorites: Set<string>
@@ -207,7 +209,6 @@ export function PersonalAreaScreen({
   nameFavorites,
   onToggleNameFavorite,
   gearChecked,
-  onToggleGear,
   leavingChecked,
   onToggleLeaving,
   professionalFavorites,
@@ -284,18 +285,20 @@ export function PersonalAreaScreen({
   }))
 
   // "התקדמות לפי קטגוריות" — % of each לפני יציאה sub-category's own items
-  // that are checked, one bar per category (every category, not just ones
-  // with progress so far — a 0% bar is meaningful here). Color follows the
-  // bar's own value on the same ramp, so the highest-progress bar reads as
-  // the deepest accent without singling one out by hand.
-  const leavingProgressBars: CategoryBar[] = LEAVING_CATEGORIES.filter((category) => category.items.length > 0).map(
-    (category) => {
+  // that are checked, one bar per category. A category with zero progress
+  // is left out entirely (per the latest brief: only categories with real
+  // progress compete for space), so the remaining bars can run wide and
+  // evenly spread rather than sharing room with empty ones. Color follows
+  // the bar's own value on the same ramp, so the highest-progress bar reads
+  // as the deepest accent without singling one out by hand.
+  const leavingProgressBars: CategoryBar[] = LEAVING_CATEGORIES.filter((category) => category.items.length > 0)
+    .map((category) => {
       const total = category.items.length
       const done = category.items.filter((item) => leavingChecked.has(item.id)).length
       const percent = Math.round((done / total) * 100)
       return { id: category.id, label: category.title, percent, color: rampAt(percent / 100) }
-    },
-  )
+    })
+    .filter((bar) => bar.percent > 0)
   const showLeavingCharts = leavingGroups.length > 0
 
   // "בעלי מקצוע מומלצים" — the same favorited professionals as the chip
@@ -318,40 +321,12 @@ export function PersonalAreaScreen({
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer")
   }
 
-  // ---- ציוד שנבחר / שמות מועדפים — kept as their own variables so the
-  // mobile chip-grid (`content`) and the desktop layout (`desktopContent`)
-  // don't keep two copies of this JSX in sync by hand. שמות מועדפים still
-  // renders on both; ציוד שנבחר is mobile-only as of this pass — desktop's
-  // `gearCard` reference was removed to keep the dashboard to its intended
-  // bar/donut/professionals/names set, per the latest refinement brief. --
-  const gearCard =
-    gearGroups.length > 0 ? (
-      <PersonalAreaCard
-        icon={<PhosphorIcon icon={Basket} size={22} weight="duotone" color="#6f1e35" />}
-        title="ציוד שנבחר"
-        count={gearCount}
-      >
-        <div className="flex flex-col gap-3">
-          {gearGroups.map((group) => (
-            <div key={group.id} className="flex flex-col gap-1.5">
-              <div className="flex items-center gap-1.5 text-[16px] font-semibold text-[#877275]">
-                <PhosphorIcon icon={group.icon} size={14} weight="duotone" color="#877275" />
-                <span>{group.title}</span>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                {group.items.map((item) => (
-                  <RemovableChip
-                    key={item.id}
-                    chip={{ key: item.id, label: item.label, onRemove: () => onToggleGear(item.id) }}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </PersonalAreaCard>
-    ) : null
-
+  // ---- שמות מועדפים — kept as its own variable so the mobile chip-grid
+  // (`content`) and the desktop layout (`desktopContent`) don't keep two
+  // copies of this JSX in sync by hand. ציוד שנבחר no longer has a card of
+  // its own anywhere (removed from mobile too, per the latest brief) —
+  // `gearGroups`/`gearCount` stay in use below purely to feed the "🛒 ציוד
+  // שנבחר" section of the WhatsApp share text, which is unaffected. -------
   const namesCard =
     favoriteNames.length > 0 ? (
       <PersonalAreaCard
@@ -366,6 +341,28 @@ export function PersonalAreaScreen({
         </div>
       </PersonalAreaCard>
     ) : null
+
+  // ---- בחירת שם — desktop's own version of the names card: unlike every
+  // other card here, it always renders (even with nothing favorited yet)
+  // so it can pair with בעלי מקצוע מומלצים and complete an even 2-on-2
+  // grid instead of leaving that row with a single, full-width card.
+  const desktopNameSelectionCard = (
+    <PersonalAreaCard
+      icon={<PhosphorIcon icon={Heart} size={22} weight="duotone" color="#6f1e35" />}
+      title="בחירת שם"
+      count={favoriteNames.length}
+    >
+      {favoriteNames.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-2">
+          {favoriteNames.map((chip) => (
+            <RemovableChip key={chip.key} chip={chip} />
+          ))}
+        </div>
+      ) : (
+        <p className="text-[16px] leading-6 text-[#877275]">עדיין לא נבחרו שמות</p>
+      )}
+    </PersonalAreaCard>
+  )
 
   // Only offered once there's actually something to send — same
   // has-anything gate the section cards below use. Desktop places this
@@ -431,8 +428,6 @@ export function PersonalAreaScreen({
         </PersonalAreaCard>
       ) : null}
 
-      {gearCard}
-
       {favoriteProfessionals.length > 0 ? (
         <PersonalAreaCard
           icon={<PhosphorIcon icon={UsersThree} size={22} weight="duotone" color="#6f1e35" />}
@@ -459,10 +454,12 @@ export function PersonalAreaScreen({
     </div>
   )
 
-  // ---- Desktop-only layout: the leaving card becomes a donut+bar pair,
-  // בעלי מקצוע becomes the grouped-by-category card, and שמות מועדפים
-  // keeps its existing chip card, moved beneath — ציוד שנבחר is mobile-only
-  // on this dashboard per the latest refinement pass (see note below). ----
+  // ---- Desktop-only layout: an even 2-on-2 grid — bar chart + donut on
+  // top, בעלי מקצוע מומלצים + בחירת שם beneath. בחירת שם always renders
+  // (see desktopNameSelectionCard above) specifically so that second row
+  // never collapses to one lonely full-width card the way it used to when
+  // nothing was favorited yet. ציוד שנבחר is mobile-only on this dashboard
+  // per the previous refinement pass (see `content` above). --------------
   const desktopContent = hasAnyItems ? (
     <div className="mt-4 max-w-[1200px]">
       {showLeavingCharts ? (
@@ -487,8 +484,8 @@ export function PersonalAreaScreen({
         </div>
       ) : null}
 
-      {professionalCategoryGroups.length > 0 ? (
-        <div className={showLeavingCharts ? "mt-4" : ""}>
+      <div className={`grid grid-cols-1 gap-4 lg:grid-cols-2 ${showLeavingCharts ? "mt-4" : ""}`}>
+        {professionalCategoryGroups.length > 0 ? (
           <PersonalAreaCard
             icon={<PhosphorIcon icon={UsersThree} size={22} weight="duotone" color="#6f1e35" />}
             title="בעלי מקצוע מומלצים"
@@ -526,22 +523,10 @@ export function PersonalAreaScreen({
               ))}
             </div>
           </PersonalAreaCard>
-        </div>
-      ) : null}
+        ) : null}
 
-      {/* ציוד שנבחר is deliberately left out of the desktop dashboard per
-          the latest refinement pass — mobile keeps it (see `content`
-          above); the dashboard's own information architecture stays at
-          bar chart / donut / recommended professionals / favorite names. */}
-      {namesCard ? (
-        <div
-          className={`grid grid-cols-1 gap-4 lg:grid-cols-2 ${
-            showLeavingCharts || professionalCategoryGroups.length > 0 ? "mt-4" : ""
-          }`}
-        >
-          {namesCard}
-        </div>
-      ) : null}
+        {desktopNameSelectionCard}
+      </div>
     </div>
   ) : (
     <div className="mt-4 max-w-[1200px]">
