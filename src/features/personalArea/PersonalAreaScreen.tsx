@@ -11,8 +11,8 @@ import { rampAt, rampStep } from "@/lib/colorRamp"
 import { GEAR_CATEGORIES } from "@/data/babyGear"
 import { LEAVING_CATEGORIES } from "@/data/leaving"
 import { PROFESSIONALS } from "@/data/professionals"
-import { SavedProfessionalCard } from "./SavedProfessionalCard"
-import type { NameCardData } from "@/features/names/NameCard"
+import { ProfessionalCard } from "@/features/professionals/ProfessionalCard"
+import { NameCard, type NameCardData } from "@/features/names/NameCard"
 import {
   Heart,
   UsersThree,
@@ -49,11 +49,6 @@ type PersonalAreaScreenProps = {
   onToggleLeaving: (id: string) => void
   professionalFavorites: Set<string>
   onToggleProfessionalFavorite: (id: string) => void
-  /** Desktop-only "בעלי מקצוע מומלצים" card: each saved professional's
-   * "לפרטים" CTA takes the person to בעלי מקצוע, same as the sidebar/
-   * drawer entry — reuses the app's existing navigation rather than
-   * introducing a second way to get there. */
-  onNavigateToProfessionals: () => void
 }
 
 type Chip = { key: string; label: string; onRemove: () => void }
@@ -197,7 +192,6 @@ export function PersonalAreaScreen({
   onToggleLeaving,
   professionalFavorites,
   onToggleProfessionalFavorite,
-  onNavigateToProfessionals,
 }: PersonalAreaScreenProps) {
   // ---- דברים שצריך לעשות לפני יציאה — checked "לפני שיוצאים" items,
   // grouped by their original checklist sub-category (same pattern as the
@@ -239,8 +233,8 @@ export function PersonalAreaScreen({
   }))
 
   // ---- Favorite Names -----------------------------------------------------
-  const favoriteNames: Chip[] = names
-    .filter((n) => nameFavorites.get(n.nameId))
+  const favoriteNameRecords = names.filter((n) => nameFavorites.get(n.nameId))
+  const favoriteNames: Chip[] = favoriteNameRecords
     .map((n) => ({
       key: n.nameId,
       label: n.text,
@@ -295,6 +289,40 @@ export function PersonalAreaScreen({
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer")
   }
 
+  // ---- Saved names / professionals render with the exact same cards as
+  // the בחירת שם and בעלי מקצוע screens (NameCard / ProfessionalCard) —
+  // not a separate dashboard-only card — with hover effects off (this
+  // screen has none) and the phone number always shown. Toggling a card's
+  // heart un-saves it here and on its own screen alike (shared state).
+  // On mobile those cards are white-on-white inside this screen's white
+  // section cards, so they get this screen's hairline border to stay
+  // distinguishable; desktop cards already carry their own border.
+  const savedCardList = "max-sm:[&_article]:border max-sm:[&_article]:border-[#f0e8e0]"
+  const nameCardsGrid = (
+    <ul className={cn("grid grid-cols-[repeat(auto-fill,minmax(min(100%,200px),1fr))] gap-3", savedCardList)}>
+      {favoriteNameRecords.map((name) => (
+        <li key={name.nameId} className="flex">
+          <NameCard name={name} favorited onToggleFavorite={onToggleNameFavorite} hoverEffect={false} />
+        </li>
+      ))}
+    </ul>
+  )
+  const professionalCardsGrid = (
+    <ul className={cn("grid grid-cols-[repeat(auto-fill,minmax(min(100%,260px),1fr))] gap-3", savedCardList)}>
+      {favoriteProfessionalRecords.map((p) => (
+        <li key={p.id} className="flex">
+          <ProfessionalCard
+            professional={p}
+            favorited
+            onToggleFavorite={onToggleProfessionalFavorite}
+            alwaysShowPhone
+            hoverEffect={false}
+          />
+        </li>
+      ))}
+    </ul>
+  )
+
   // ---- שמות מועדפים — kept as its own variable so the mobile chip-grid
   // (`content`) and the desktop layout (`desktopContent`) don't keep two
   // copies of this JSX in sync by hand. ציוד שנבחר no longer has a card of
@@ -308,11 +336,7 @@ export function PersonalAreaScreen({
         title="שמות מועדפים"
         count={favoriteNames.length}
       >
-        <div className="flex flex-wrap items-center gap-2">
-          {favoriteNames.map((chip) => (
-            <RemovableChip key={chip.key} chip={chip} />
-          ))}
-        </div>
+        {nameCardsGrid}
       </PersonalAreaCard>
     ) : null
 
@@ -327,11 +351,7 @@ export function PersonalAreaScreen({
       count={favoriteNames.length}
     >
       {favoriteNames.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-2">
-          {favoriteNames.map((chip) => (
-            <RemovableChip key={chip.key} chip={chip} />
-          ))}
-        </div>
+        nameCardsGrid
       ) : (
         <p className="text-[16px] leading-6 text-[#877275]">עדיין לא נבחרו שמות</p>
       )}
@@ -410,11 +430,7 @@ export function PersonalAreaScreen({
           title="בעלי מקצוע מועדפים"
           count={favoriteProfessionals.length}
         >
-          <div className="flex flex-wrap items-center gap-2">
-            {favoriteProfessionals.map((chip) => (
-              <RemovableChip key={chip.key} chip={chip} />
-            ))}
-          </div>
+          {professionalCardsGrid}
         </PersonalAreaCard>
       ) : null}
 
@@ -474,21 +490,7 @@ export function PersonalAreaScreen({
             title="בעלי מקצוע מומלצים"
             count={favoriteProfessionalRecords.length}
           >
-            {/* Every saved professional as a full, always-expanded profile
-                card — no collapsed per-category row to click through. The
-                auto-fill track keeps a single saved professional at a
-                compact card width instead of stretching across the whole
-                section, and wraps more of them into further columns. */}
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-3">
-              {favoriteProfessionalRecords.map((p) => (
-                <SavedProfessionalCard
-                  key={p.id}
-                  professional={p}
-                  onToggleFavorite={onToggleProfessionalFavorite}
-                  onOpenDetails={onNavigateToProfessionals}
-                />
-              ))}
-            </div>
+            {professionalCardsGrid}
           </PersonalAreaCard>
         ) : null}
 
