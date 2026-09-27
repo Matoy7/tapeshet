@@ -302,6 +302,7 @@ export default function App() {
         activeNavId={mobileView}
         mobileCategories={mobileCategories}
         activeMobileCategoryId={mobileView}
+        fullWidthContent={mobileView === "personal"}
         userName={userName}
         avatarUrl={avatarUrl}
         canUpgrade={canUpgradeAccount(session.user)}

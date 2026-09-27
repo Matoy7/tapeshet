@@ -1,6 +1,12 @@
 import { Cell, Pie, PieChart } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
-import { CHART_GRID_STROKE, CHART_MIN_LABEL_PERCENT, getOnFillLabelColor } from "@/lib/chartTheme"
+import {
+  CHART_GRID_STROKE,
+  CHART_LIGHT_FILL_EDGE,
+  CHART_MIN_LABEL_PERCENT,
+  getOnFillLabelColor,
+  isNearWhiteFill,
+} from "@/lib/chartTheme"
 
 export type DonutSegment = {
   id: string
@@ -97,7 +103,14 @@ export function DonutChart({ segments, total, centerCaption }: DonutChartProps) 
             <span
               aria-hidden
               className="size-3 shrink-0 rounded-full ring-2 ring-white"
-              style={{ backgroundColor: segment.color, boxShadow: "0 0 0 1px rgba(29,27,25,0.06)" }}
+              style={{
+                backgroundColor: segment.color,
+                // Near-white swatches get the same hairline edge as their
+                // slice, so the legend dot doesn't vanish either.
+                boxShadow: isNearWhiteFill(segment.color)
+                  ? `inset 0 0 0 1px ${CHART_LIGHT_FILL_EDGE}`
+                  : "0 0 0 1px rgba(29,27,25,0.06)",
+              }}
             />
             <span className="flex min-w-0 flex-col">
               {/* Hierarchy through weight + color, not through shrinking
@@ -151,9 +164,16 @@ export function DonutChart({ segments, total, centerCaption }: DonutChartProps) 
               labelLine={false}
               isAnimationActive={false}
             >
-              {segments.map((segment) => (
-                <Cell key={segment.id} fill={segment.color} />
-              ))}
+              {/* A near-white slice (the pink-light end of the ramp) would
+                  melt into the white card — it gets a 1px dusty-pink
+                  hairline edge; every other slice stays edge-less. */}
+              {segments.map((segment) =>
+                isNearWhiteFill(segment.color) ? (
+                  <Cell key={segment.id} fill={segment.color} stroke={CHART_LIGHT_FILL_EDGE} strokeWidth={1} />
+                ) : (
+                  <Cell key={segment.id} fill={segment.color} />
+                ),
+              )}
             </Pie>
             <ChartTooltip
               content={<ChartTooltipContent hideLabel formatter={(value) => `${value} פריטים`} />}

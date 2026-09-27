@@ -38,7 +38,7 @@ function RatingRow({ rating, reviewCount }: { rating: number | null; reviewCount
  * "למידע נוסף"). Once revealed, the same control becomes the number itself
  * as a tel: link, so there's still exactly one action, not two.
  */
-function ShowPhoneButton({ phone, className }: { phone: string; className?: string }) {
+export function ShowPhoneButton({ phone, className }: { phone: string; className?: string }) {
   const [revealed, setRevealed] = useState(false)
 
   if (revealed) {
