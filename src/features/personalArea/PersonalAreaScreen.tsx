@@ -1,14 +1,41 @@
 import type { ReactNode } from "react"
+import type { Icon as PhosphorIconComponent } from "@phosphor-icons/react"
 import { DesktopScreenHeader } from "@/components/layout/DesktopScreenHeader"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { Icon as PhosphorIcon } from "@/components/ui/PhosphorIcon"
 import { Button } from "@/components/ui/Button"
+import { DonutChart, type DonutSegment } from "@/components/ui/DonutChart"
+import { CategoryBarChart, type CategoryBar } from "@/components/ui/CategoryBarChart"
 import { assets } from "@/lib/assets"
+import { rampAt, rampStep } from "@/lib/colorRamp"
 import { GEAR_CATEGORIES } from "@/data/babyGear"
 import { LEAVING_CATEGORIES } from "@/data/leaving"
-import { PROFESSIONALS } from "@/data/professionals"
+import { PROFESSIONALS, type ProfessionalCategory } from "@/data/professionals"
+import { CATEGORY_TABS, CATEGORY_LABELS } from "@/features/professionals/filterOptions"
 import type { NameCardData } from "@/features/names/NameCard"
-import { Heart, Basket, UsersThree, WhatsappLogo, X } from "@phosphor-icons/react"
+import {
+  Heart,
+  Basket,
+  UsersThree,
+  WhatsappLogo,
+  X,
+  ChartBar,
+  Star,
+  Drop,
+  MoonStars,
+  HandHeart,
+  CaretLeft,
+} from "@phosphor-icons/react"
+
+/** One icon per בעלי מקצוע category, for the "בעלי מקצוע מומלצים" card —
+ * this codebase has no existing category→icon map (ProfessionalCategories
+ * only needed labels until now), so this is a new, small, local one. */
+const PROFESSIONAL_CATEGORY_ICON: Record<ProfessionalCategory, PhosphorIconComponent> = {
+  mohel: Star,
+  lactation: Drop,
+  sleep: MoonStars,
+  doula: HandHeart,
+}
 
 /**
  * "אזור אישי" (Personal Area) — the single place that gathers everything the
@@ -35,6 +62,11 @@ type PersonalAreaScreenProps = {
   onToggleLeaving: (id: string) => void
   professionalFavorites: Set<string>
   onToggleProfessionalFavorite: (id: string) => void
+  /** Desktop-only "בעלי מקצוע מומלצים" card: each category row is
+   * clickable and takes the person to בעלי מקצוע, same as the sidebar/
+   * drawer entry — reuses the app's existing navigation rather than
+   * introducing a second way to get there. */
+  onNavigateToProfessionals: () => void
 }
 
 type Chip = { key: string; label: string; onRemove: () => void }
@@ -166,6 +198,7 @@ export function PersonalAreaScreen({
   onToggleLeaving,
   professionalFavorites,
   onToggleProfessionalFavorite,
+  onNavigateToProfessionals,
 }: PersonalAreaScreenProps) {
   // ---- דברים שצריך לעשות לפני יציאה — checked "לפני שיוצאים" items,
   // grouped by their original checklist sub-category (same pattern as the
@@ -218,6 +251,49 @@ export function PersonalAreaScreen({
   const hasAnyItems =
     leavingGroups.length > 0 || gearGroups.length > 0 || favoriteProfessionals.length > 0 || favoriteNames.length > 0
 
+  // ---- Desktop-only analytics cards (mobile keeps the chip-list cards
+  // above, untouched) ------------------------------------------------------
+
+  // "דברים שצריך לעשות לפני יציאה" as a donut: composition of the checked
+  // items by sub-category. A slice's color is keyed to that category's
+  // fixed position in LEAVING_CATEGORIES (not its position among today's
+  // checked groups), so a category's color never shifts depending on which
+  // other categories happen to have checked items right now.
+  const leavingDonutSegments: DonutSegment[] = leavingGroups.map((group) => ({
+    id: group.id,
+    label: group.title,
+    count: group.items.length,
+    color: rampStep(
+      LEAVING_CATEGORIES.findIndex((c) => c.id === group.id),
+      LEAVING_CATEGORIES.length,
+    ),
+  }))
+
+  // "התקדמות לפי קטגוריות" — % of each לפני יציאה sub-category's own items
+  // that are checked, one bar per category (every category, not just ones
+  // with progress so far — a 0% bar is meaningful here). Color follows the
+  // bar's own value on the same ramp, so the highest-progress bar reads as
+  // the deepest accent without singling one out by hand.
+  const leavingProgressBars: CategoryBar[] = LEAVING_CATEGORIES.filter((category) => category.items.length > 0).map(
+    (category) => {
+      const total = category.items.length
+      const done = category.items.filter((item) => leavingChecked.has(item.id)).length
+      const percent = Math.round((done / total) * 100)
+      return { id: category.id, label: category.title, percent, color: rampAt(percent / 100) }
+    },
+  )
+  const showLeavingCharts = leavingGroups.length > 0
+
+  // "בעלי מקצוע מומלצים" — the same favorited professionals as the chip
+  // card above, grouped by category instead of listed flat, each row
+  // clickable through to בעלי מקצוע. Fixed category order (CATEGORY_TABS),
+  // categories with nothing favorited are left out.
+  const professionalCategoryGroups = CATEGORY_TABS.map((tab) => ({
+    category: tab.value,
+    label: CATEGORY_LABELS[tab.value],
+    count: favoriteProfessionalRecords.filter((p) => p.category === tab.value).length,
+  })).filter((group) => group.count > 0)
+
   // Opens WhatsApp's own share/deep-link (wa.me) with the whole page's
   // contents pre-filled as the message — the app launches on a phone if
   // it's installed, WhatsApp Web otherwise, exactly like any other "share
@@ -228,8 +304,59 @@ export function PersonalAreaScreen({
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer")
   }
 
+  // ---- ציוד שנבחר / שמות מועדפים — unchanged from before this pass,
+  // pulled into their own variables only so both the mobile chip-grid
+  // (`content`, byte-for-byte the same as before) and the new desktop
+  // layout (`desktopContent`, below) can render the exact same cards
+  // without keeping two copies of this JSX in sync by hand. -------------
+  const gearCard =
+    gearGroups.length > 0 ? (
+      <PersonalAreaCard
+        icon={<PhosphorIcon icon={Basket} size={22} weight="duotone" color="#6f1e35" />}
+        title="ציוד שנבחר"
+        count={gearCount}
+      >
+        <div className="flex flex-col gap-3">
+          {gearGroups.map((group) => (
+            <div key={group.id} className="flex flex-col gap-1.5">
+              <div className="flex items-center gap-1.5 text-[13px] font-semibold text-[#877275]">
+                <PhosphorIcon icon={group.icon} size={14} weight="duotone" color="#877275" />
+                <span>{group.title}</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {group.items.map((item) => (
+                  <RemovableChip
+                    key={item.id}
+                    chip={{ key: item.id, label: item.label, onRemove: () => onToggleGear(item.id) }}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </PersonalAreaCard>
+    ) : null
+
+  const namesCard =
+    favoriteNames.length > 0 ? (
+      <PersonalAreaCard
+        icon={<PhosphorIcon icon={Heart} size={22} weight="duotone" color="#6f1e35" />}
+        title="שמות מועדפים"
+        count={favoriteNames.length}
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          {favoriteNames.map((chip) => (
+            <RemovableChip key={chip.key} chip={chip} />
+          ))}
+        </div>
+      </PersonalAreaCard>
+    ) : null
+
   // Only offered once there's actually something to send — same
-  // has-anything gate the section cards below use.
+  // has-anything gate the section cards below use. Desktop places this
+  // compact version in the header row instead (see DesktopScreenHeader's
+  // `action` prop below) — mobile has no such row, so it keeps this
+  // full-width button under the content, unchanged from before.
   const shareButton = hasAnyItems ? (
     <div className="mt-4 max-w-[1200px]">
       <Button
@@ -242,6 +369,17 @@ export function PersonalAreaScreen({
         שלחי את הרשימה בוואטסאפ
       </Button>
     </div>
+  ) : null
+
+  const whatsAppHeaderAction = hasAnyItems ? (
+    <Button
+      variant="primary"
+      size="md"
+      onClick={shareToWhatsApp}
+      iconStart={<PhosphorIcon icon={WhatsappLogo} size={16} weight="fill" color="#ffffff" />}
+    >
+      שלח את הרשימה בוואטסאפ
+    </Button>
   ) : null
 
   const content = hasAnyItems ? (
@@ -273,32 +411,7 @@ export function PersonalAreaScreen({
         </PersonalAreaCard>
       ) : null}
 
-      {gearGroups.length > 0 ? (
-        <PersonalAreaCard
-          icon={<PhosphorIcon icon={Basket} size={22} weight="duotone" color="#6f1e35" />}
-          title="ציוד שנבחר"
-          count={gearCount}
-        >
-          <div className="flex flex-col gap-3">
-            {gearGroups.map((group) => (
-              <div key={group.id} className="flex flex-col gap-1.5">
-                <div className="flex items-center gap-1.5 text-[13px] font-semibold text-[#877275]">
-                  <PhosphorIcon icon={group.icon} size={14} weight="duotone" color="#877275" />
-                  <span>{group.title}</span>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  {group.items.map((item) => (
-                    <RemovableChip
-                      key={item.id}
-                      chip={{ key: item.id, label: item.label, onRemove: () => onToggleGear(item.id) }}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </PersonalAreaCard>
-      ) : null}
+      {gearCard}
 
       {favoriteProfessionals.length > 0 ? (
         <PersonalAreaCard
@@ -314,18 +427,91 @@ export function PersonalAreaScreen({
         </PersonalAreaCard>
       ) : null}
 
-      {favoriteNames.length > 0 ? (
-        <PersonalAreaCard
-          icon={<PhosphorIcon icon={Heart} size={22} weight="duotone" color="#6f1e35" />}
-          title="שמות מועדפים"
-          count={favoriteNames.length}
+      {namesCard}
+    </div>
+  ) : (
+    <div className="mt-4 max-w-[1200px]">
+      <EmptyState
+        image={assets.emptyStateBrain}
+        title="אין עדיין פריטים להצגה"
+        description="כשתוסיפי רשימות, פריטים או שמות, הם יופיעו כאן."
+      />
+    </div>
+  )
+
+  // ---- Desktop-only layout: the leaving card becomes a donut+bar pair,
+  // בעלי מקצוע becomes the grouped-by-category card, and ציוד שנבחר /
+  // שמות מועדפים keep their existing chip cards, just moved beneath —
+  // per the confirmed brief, nothing already built disappears on desktop. --
+  const desktopContent = hasAnyItems ? (
+    <div className="mt-4 max-w-[1200px]">
+      {showLeavingCharts ? (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <PersonalAreaCard
+            icon={<PhosphorIcon icon={ChartBar} size={22} weight="duotone" color="#6f1e35" />}
+            title="התקדמות לפי קטגוריות"
+            count={leavingProgressBars.length}
+          >
+            <CategoryBarChart bars={leavingProgressBars} />
+          </PersonalAreaCard>
+
+          <PersonalAreaCard
+            icon={<PhosphorIcon icon={Heart} size={22} weight="duotone" color="#6f1e35" />}
+            title="דברים שצריך לעשות לפני יציאה"
+            count={leavingCount}
+          >
+            <DonutChart segments={leavingDonutSegments} total={leavingCount} centerCaption="פריטים בסך הכל" />
+          </PersonalAreaCard>
+        </div>
+      ) : null}
+
+      {professionalCategoryGroups.length > 0 ? (
+        <div className={showLeavingCharts ? "mt-4" : ""}>
+          <PersonalAreaCard
+            icon={<PhosphorIcon icon={UsersThree} size={22} weight="duotone" color="#6f1e35" />}
+            title="בעלי מקצוע מומלצים"
+            count={favoriteProfessionals.length}
+          >
+            <div className="flex flex-wrap gap-3">
+              {professionalCategoryGroups.map((group) => (
+                <button
+                  key={group.category}
+                  type="button"
+                  onClick={onNavigateToProfessionals}
+                  className="flex min-w-[150px] flex-1 items-center gap-3 rounded-lg border border-[#f0e8e0] bg-white px-3 py-2.5 transition-colors duration-150 hover:bg-[#fff7f5]"
+                >
+                  <span
+                    aria-hidden
+                    className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[rgba(255,217,222,0.4)]"
+                  >
+                    <PhosphorIcon
+                      icon={PROFESSIONAL_CATEGORY_ICON[group.category]}
+                      size={18}
+                      weight="duotone"
+                      color="#6f1e35"
+                    />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[14px] font-semibold text-[#1d1b19]">{group.label}</span>
+                    <span className="block text-[12px] text-[#877275]">{group.count} שמורים</span>
+                  </span>
+                  <PhosphorIcon icon={CaretLeft} size={14} weight="bold" color="#877275" />
+                </button>
+              ))}
+            </div>
+          </PersonalAreaCard>
+        </div>
+      ) : null}
+
+      {gearCard || namesCard ? (
+        <div
+          className={`grid grid-cols-1 gap-4 lg:grid-cols-2 ${
+            showLeavingCharts || professionalCategoryGroups.length > 0 ? "mt-4" : ""
+          }`}
         >
-          <div className="flex flex-wrap items-center gap-2">
-            {favoriteNames.map((chip) => (
-              <RemovableChip key={chip.key} chip={chip} />
-            ))}
-          </div>
-        </PersonalAreaCard>
+          {gearCard}
+          {namesCard}
+        </div>
       ) : null}
     </div>
   ) : (
@@ -355,16 +541,18 @@ export function PersonalAreaScreen({
         {shareButton}
       </div>
 
-      {/* Desktop — compact header + the same card grid (or empty state). */}
+      {/* Desktop — compact header (with the compact WhatsApp action on the
+          opposite side of the row from the title, per the brief) + the
+          donut/bar/professionals-category layout, or the empty state. */}
       <div className="hidden sm:block">
         <DesktopScreenHeader
           image={assets.homePersonalArea}
           title="אזור אישי"
           subtitle="כל מה ששמרת בטפשת במקום אחד"
+          action={whatsAppHeaderAction}
         />
 
-        {content}
-        {shareButton}
+        {desktopContent}
       </div>
     </div>
   )

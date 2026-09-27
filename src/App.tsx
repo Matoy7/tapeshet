@@ -370,6 +370,7 @@ export default function App() {
             onToggleLeaving={toggleLeaving}
             professionalFavorites={professionalFavorites}
             onToggleProfessionalFavorite={toggleProfessionalFavorite}
+            onNavigateToProfessionals={() => setMobileView("professionals")}
           />
         </div>
 

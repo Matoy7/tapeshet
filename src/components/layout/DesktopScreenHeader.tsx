@@ -21,9 +21,15 @@ type DesktopScreenHeaderProps = {
   subtitle: string
   /** "X מתוך Y הושלמו" — omit for a screen with no single overall count. */
   progressLabel?: string
+  /** A single compact action (e.g. Personal Area's WhatsApp share button) —
+   * renders on the opposite side of the row from the title/icon, same slot
+   * as `progressLabel`. At most one of the two is expected per screen; if
+   * both were ever passed, they'd sit side by side rather than one winning,
+   * so callers should only use the one that applies to them. */
+  action?: ReactNode
 }
 
-export function DesktopScreenHeader({ image, icon, title, subtitle, progressLabel }: DesktopScreenHeaderProps) {
+export function DesktopScreenHeader({ image, icon, title, subtitle, progressLabel, action }: DesktopScreenHeaderProps) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 pb-1">
       <div className="flex items-center gap-4">
@@ -42,7 +48,12 @@ export function DesktopScreenHeader({ image, icon, title, subtitle, progressLabe
           <p className="mt-0.5 text-[15px] leading-5 text-[#544245]">{subtitle}</p>
         </div>
       </div>
-      {progressLabel ? <p className="text-[15px] font-medium text-[#544245]">{progressLabel}</p> : null}
+      {progressLabel || action ? (
+        <div className="flex items-center gap-3">
+          {progressLabel ? <p className="text-[15px] font-medium text-[#544245]">{progressLabel}</p> : null}
+          {action}
+        </div>
+      ) : null}
     </div>
   )
 }
