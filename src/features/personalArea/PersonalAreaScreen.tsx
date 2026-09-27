@@ -4,6 +4,7 @@ import { DesktopScreenHeader } from "@/components/layout/DesktopScreenHeader"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { Icon as PhosphorIcon } from "@/components/ui/PhosphorIcon"
 import { Button } from "@/components/ui/Button"
+import { cn } from "@/lib/cn"
 import { DonutChart, type DonutSegment } from "@/components/ui/DonutChart"
 import { CategoryBarChart, type CategoryBar } from "@/components/ui/CategoryBarChart"
 import { assets } from "@/lib/assets"
@@ -76,7 +77,7 @@ type Chip = { key: string; label: string; onRemove: () => void }
  * chose and can undo" reads consistently across the app. */
 function RemovableChip({ chip }: { chip: Chip }) {
   return (
-    <span className="flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-[#f3ede8] ps-1 pe-3 text-[14px] font-medium text-[#1d1b19]">
+    <span className="flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-[#f3ede8] ps-1 pe-3 text-[16px] font-medium text-[#1d1b19]">
       <button
         type="button"
         onClick={chip.onRemove}
@@ -100,11 +101,17 @@ function PersonalAreaCard({
   icon,
   title,
   count,
+  /** The two chart cards (bar + donut) ask for their content vertically
+   * centered so they read as equal visual counterparts regardless of
+   * chart shape; every other card here is a wrapping chip/row list that
+   * should stay top-aligned as before, so this defaults to off. */
+  centerContent = false,
   children,
 }: {
   icon: ReactNode
   title: string
   count: number
+  centerContent?: boolean
   children: ReactNode
 }) {
   return (
@@ -114,14 +121,21 @@ function PersonalAreaCard({
           <span aria-hidden className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[rgba(255,217,222,0.4)]">
             {icon}
           </span>
-          <span className="truncate text-[18px] font-semibold leading-6 text-[#1d1b19]">{title}</span>
+          <span className="text-[20px] font-bold leading-7 text-[#1d1b19]">{title}</span>
         </div>
-        <span className="shrink-0 rounded-full bg-[#f3ede8] px-2 py-0.5 text-[13px] font-semibold leading-[18px] text-[#544245]">
+        <span className="shrink-0 rounded-full bg-[#f3ede8] px-2.5 py-1 text-[16px] font-medium leading-5 text-[#544245]">
           {count}
         </span>
       </div>
 
-      <div className="border-t border-[#f0e8e0] pt-3">{children}</div>
+      <div
+        className={cn(
+          "border-t border-[#f0e8e0] pt-3",
+          centerContent && "flex flex-1 flex-col justify-center",
+        )}
+      >
+        {children}
+      </div>
     </div>
   )
 }
@@ -304,11 +318,12 @@ export function PersonalAreaScreen({
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer")
   }
 
-  // ---- ציוד שנבחר / שמות מועדפים — unchanged from before this pass,
-  // pulled into their own variables only so both the mobile chip-grid
-  // (`content`, byte-for-byte the same as before) and the new desktop
-  // layout (`desktopContent`, below) can render the exact same cards
-  // without keeping two copies of this JSX in sync by hand. -------------
+  // ---- ציוד שנבחר / שמות מועדפים — kept as their own variables so the
+  // mobile chip-grid (`content`) and the desktop layout (`desktopContent`)
+  // don't keep two copies of this JSX in sync by hand. שמות מועדפים still
+  // renders on both; ציוד שנבחר is mobile-only as of this pass — desktop's
+  // `gearCard` reference was removed to keep the dashboard to its intended
+  // bar/donut/professionals/names set, per the latest refinement brief. --
   const gearCard =
     gearGroups.length > 0 ? (
       <PersonalAreaCard
@@ -319,7 +334,7 @@ export function PersonalAreaScreen({
         <div className="flex flex-col gap-3">
           {gearGroups.map((group) => (
             <div key={group.id} className="flex flex-col gap-1.5">
-              <div className="flex items-center gap-1.5 text-[13px] font-semibold text-[#877275]">
+              <div className="flex items-center gap-1.5 text-[16px] font-semibold text-[#877275]">
                 <PhosphorIcon icon={group.icon} size={14} weight="duotone" color="#877275" />
                 <span>{group.title}</span>
               </div>
@@ -376,6 +391,11 @@ export function PersonalAreaScreen({
       variant="primary"
       size="md"
       onClick={shareToWhatsApp}
+      // The shared Button "md" size is 15px everywhere else in the app;
+      // overridden here (inline style beats a shared class regardless of
+      // stylesheet order) only for this one instance, to meet this page's
+      // own 16px-minimum text rule without changing every other md button.
+      style={{ fontSize: 16 }}
       iconStart={<PhosphorIcon icon={WhatsappLogo} size={16} weight="fill" color="#ffffff" />}
     >
       שלח את הרשימה בוואטסאפ
@@ -393,7 +413,7 @@ export function PersonalAreaScreen({
           <div className="flex flex-col gap-3">
             {leavingGroups.map((group) => (
               <div key={group.id} className="flex flex-col gap-1.5">
-                <div className="flex items-center gap-1.5 text-[13px] font-semibold text-[#877275]">
+                <div className="flex items-center gap-1.5 text-[16px] font-semibold text-[#877275]">
                   <PhosphorIcon icon={group.icon} size={14} weight="duotone" color="#877275" />
                   <span>{group.title}</span>
                 </div>
@@ -440,9 +460,9 @@ export function PersonalAreaScreen({
   )
 
   // ---- Desktop-only layout: the leaving card becomes a donut+bar pair,
-  // בעלי מקצוע becomes the grouped-by-category card, and ציוד שנבחר /
-  // שמות מועדפים keep their existing chip cards, just moved beneath —
-  // per the confirmed brief, nothing already built disappears on desktop. --
+  // בעלי מקצוע becomes the grouped-by-category card, and שמות מועדפים
+  // keeps its existing chip card, moved beneath — ציוד שנבחר is mobile-only
+  // on this dashboard per the latest refinement pass (see note below). ----
   const desktopContent = hasAnyItems ? (
     <div className="mt-4 max-w-[1200px]">
       {showLeavingCharts ? (
@@ -451,6 +471,7 @@ export function PersonalAreaScreen({
             icon={<PhosphorIcon icon={ChartBar} size={22} weight="duotone" color="#6f1e35" />}
             title="התקדמות לפי קטגוריות"
             count={leavingProgressBars.length}
+            centerContent
           >
             <CategoryBarChart bars={leavingProgressBars} />
           </PersonalAreaCard>
@@ -459,6 +480,7 @@ export function PersonalAreaScreen({
             icon={<PhosphorIcon icon={Heart} size={22} weight="duotone" color="#6f1e35" />}
             title="דברים שצריך לעשות לפני יציאה"
             count={leavingCount}
+            centerContent
           >
             <DonutChart segments={leavingDonutSegments} total={leavingCount} centerCaption="פריטים בסך הכל" />
           </PersonalAreaCard>
@@ -472,13 +494,17 @@ export function PersonalAreaScreen({
             title="בעלי מקצוע מומלצים"
             count={favoriteProfessionals.length}
           >
+            {/* Each row is a fixed, compact width rather than flex-1 — with
+                only one or two professionals saved so far, a growing row
+                would stretch awkwardly across the whole card; this way it
+                stays a deliberate, card-like chip regardless of count. */}
             <div className="flex flex-wrap gap-3">
               {professionalCategoryGroups.map((group) => (
                 <button
                   key={group.category}
                   type="button"
                   onClick={onNavigateToProfessionals}
-                  className="flex min-w-[150px] flex-1 items-center gap-3 rounded-lg border border-[#f0e8e0] bg-white px-3 py-2.5 transition-colors duration-150 hover:bg-[#fff7f5]"
+                  className="flex w-[240px] max-w-full items-center gap-3 rounded-lg border border-[#f0e8e0] bg-white px-3 py-2.5 transition-colors duration-150 hover:bg-[#fff7f5]"
                 >
                   <span
                     aria-hidden
@@ -491,9 +517,9 @@ export function PersonalAreaScreen({
                       color="#6f1e35"
                     />
                   </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[14px] font-semibold text-[#1d1b19]">{group.label}</span>
-                    <span className="block text-[12px] text-[#877275]">{group.count} שמורים</span>
+                  <span className="min-w-0 flex-1 text-right">
+                    <span className="block text-[16px] font-semibold leading-5 text-[#1d1b19]">{group.label}</span>
+                    <span className="block text-[16px] leading-5 text-[#877275]">{group.count} שמורים</span>
                   </span>
                   <PhosphorIcon icon={CaretLeft} size={14} weight="bold" color="#877275" />
                 </button>
@@ -503,13 +529,16 @@ export function PersonalAreaScreen({
         </div>
       ) : null}
 
-      {gearCard || namesCard ? (
+      {/* ציוד שנבחר is deliberately left out of the desktop dashboard per
+          the latest refinement pass — mobile keeps it (see `content`
+          above); the dashboard's own information architecture stays at
+          bar chart / donut / recommended professionals / favorite names. */}
+      {namesCard ? (
         <div
           className={`grid grid-cols-1 gap-4 lg:grid-cols-2 ${
             showLeavingCharts || professionalCategoryGroups.length > 0 ? "mt-4" : ""
           }`}
         >
-          {gearCard}
           {namesCard}
         </div>
       ) : null}
@@ -534,7 +563,7 @@ export function PersonalAreaScreen({
         <div className="flex flex-col items-center pb-2 pt-1 text-center">
           <img src={assets.homePersonalArea} alt="" aria-hidden className="mb-1 h-28 w-28 object-contain" />
           <h1 className="text-[26px] font-black leading-[34px] text-[#6f1e35]">אזור אישי</h1>
-          <p className="mt-1 text-[14px] leading-[22px] text-[#544245]">כל מה ששמרת בטפשת במקום אחד</p>
+          <p className="mt-1 text-[16px] leading-[22px] text-[#544245]">כל מה ששמרת בטפשת במקום אחד</p>
         </div>
 
         {content}

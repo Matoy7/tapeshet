@@ -46,10 +46,13 @@ export function getOnFillLabelColor(fill: string): string {
 
 export const CHART_FONT_FAMILY = "var(--font-sans)"
 
-/** Shared tick typography, spread directly onto a Recharts `<XAxis tick={{...}} />`. */
+/** Shared tick typography, spread directly onto a Recharts `<XAxis tick={{...}} />`.
+ * 16px — the page's own text-size floor — kept visually subtle through
+ * muted color and weight (see individual chart usage) rather than through
+ * being too small to read. */
 export const CHART_TICK_STYLE = {
   fill: CHART_TICK_COLOR,
-  fontSize: 11,
+  fontSize: 16,
   fontFamily: CHART_FONT_FAMILY,
   fontWeight: 500,
 } as const

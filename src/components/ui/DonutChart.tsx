@@ -16,15 +16,18 @@ type DonutChartProps = {
   centerCaption: string
 }
 
-const SIZE = 168
-const INNER_RADIUS = 49
-const OUTER_RADIUS = 75
+// ~14% larger overall, ~23% thicker ring than the first pass — the donut
+// is meant to read as the card's main visual element, not sit small in the
+// middle of otherwise-empty space.
+const SIZE = 192
+const INNER_RADIUS = 56
+const OUTER_RADIUS = 88
 /** Small visual gap between adjacent slices (mark-spec: a surface gap
  * between fills), in degrees. */
 const GAP_DEGREES = 3
 /** Rounds each slice's arc corners — the "thick, rounded-looking donut"
  * the Tafeshet Chart System calls for, instead of a flat pie-chart edge. */
-const CORNER_RADIUS = 6
+const CORNER_RADIUS = 7
 
 type SliceLabelProps = {
   cx: number
@@ -59,7 +62,7 @@ function renderSliceLabel(props: SliceLabelProps) {
       y={y}
       textAnchor="middle"
       dominantBaseline="middle"
-      fontSize={12}
+      fontSize={16}
       fontWeight={700}
       fill={getOnFillLabelColor(payload.color)}
     >
@@ -82,20 +85,31 @@ export function DonutChart({ segments, total, centerCaption }: DonutChartProps) 
   )
 
   return (
-    <div className="flex items-center justify-center gap-5">
+    // gap-4 rather than the wider gap the first pass used — legend and ring
+    // read as one connected unit instead of two separate elements.
+    <div className="flex items-center justify-center gap-4">
       <ul className="flex min-w-0 flex-col gap-2.5">
         {segments.map((segment) => (
-          <li key={segment.id} className="flex min-w-0 items-center gap-2">
+          <li key={segment.id} className="flex min-w-0 items-center gap-2.5">
+            {/* A thin white ring around each dot separates it from its own
+                fill's neighbors and reads as a deliberate, finished mark
+                rather than a flat color swatch. */}
             <span
               aria-hidden
-              className="mt-0.5 size-2.5 shrink-0 self-start rounded-full"
-              style={{ backgroundColor: segment.color }}
+              className="size-3 shrink-0 rounded-full ring-2 ring-white"
+              style={{ backgroundColor: segment.color, boxShadow: "0 0 0 1px rgba(29,27,25,0.06)" }}
             />
             <span className="flex min-w-0 flex-col">
-              <span className="truncate text-[13px] font-semibold leading-[18px] text-tafsheet-text-primary">
+              {/* Hierarchy through weight + color, not through shrinking
+                  below the page's 16px minimum: category name stronger,
+                  item count lighter and muted. No truncate — a category
+                  name should never be cut off, it wraps instead. */}
+              <span className="text-[16px] font-semibold leading-5 text-tafsheet-text-primary">
                 {segment.label}
               </span>
-              <span className="text-[12px] leading-4 text-tafsheet-text-muted">{segment.count} פריטים</span>
+              <span className="text-[16px] font-normal leading-5 text-tafsheet-text-muted">
+                {segment.count} פריטים
+              </span>
             </span>
           </li>
         ))}
@@ -147,8 +161,10 @@ export function DonutChart({ segments, total, centerCaption }: DonutChartProps) 
           </PieChart>
         </ChartContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-[26px] font-extrabold leading-7 text-tafsheet-text-primary">{total}</span>
-          <span className="mt-0.5 max-w-[80px] text-center text-[11px] leading-[14px] text-tafsheet-text-muted">
+          <span className="text-[30px] font-extrabold leading-8 text-tafsheet-text-primary">{total}</span>
+          {/* Kept clearly secondary to the total — smaller, lighter weight,
+              muted color — while still meeting the page's 16px floor. */}
+          <span className="mt-0.5 max-w-[104px] text-center text-[16px] font-normal leading-[18px] text-tafsheet-text-muted">
             {centerCaption}
           </span>
         </div>
