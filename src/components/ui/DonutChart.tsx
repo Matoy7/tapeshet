@@ -16,9 +16,6 @@ export type DonutSegment = {
 
 type DonutChartProps = {
   segments: DonutSegment[]
-  total: number
-  /** Shown under the big total number in the center, e.g. "פריטים בסך הכל". */
-  centerCaption: string
 }
 
 // ~14% larger overall, ~23% thicker ring than the first pass — the donut
@@ -83,7 +80,7 @@ function renderSliceLabel(props: SliceLabelProps) {
  * in an RTL flex row it lands on the right per the brief, with the ring
  * itself to its left.
  */
-export function DonutChart({ segments, total, centerCaption }: DonutChartProps) {
+export function DonutChart({ segments }: DonutChartProps) {
   const config: ChartConfig = Object.fromEntries(
     segments.map((segment) => [segment.id, { label: segment.label, color: segment.color }]),
   )
@@ -168,14 +165,6 @@ export function DonutChart({ segments, total, centerCaption }: DonutChartProps) 
             </Pie>
           </PieChart>
         </ChartContainer>
-        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-[30px] font-extrabold leading-8 text-tafsheet-text-primary">{total}</span>
-          {/* Kept clearly secondary to the total — smaller, lighter weight,
-              muted color — while still meeting the page's 16px floor. */}
-          <span className="mt-0.5 max-w-[104px] text-center text-[16px] font-normal leading-[18px] text-tafsheet-text-muted">
-            {centerCaption}
-          </span>
-        </div>
       </div>
     </div>
   )

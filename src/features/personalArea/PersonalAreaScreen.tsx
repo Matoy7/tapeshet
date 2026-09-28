@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button"
 import { cn } from "@/lib/cn"
 import { DonutChart, type DonutSegment } from "@/components/ui/DonutChart"
 import { CategoryBarChart, type CategoryBar } from "@/components/ui/CategoryBarChart"
+import { FitToBox } from "@/components/ui/FitToBox"
 import { assets } from "@/lib/assets"
 import { rampAt, rampStep } from "@/lib/colorRamp"
 import { GEAR_CATEGORIES } from "@/data/babyGear"
@@ -474,7 +475,11 @@ export function PersonalAreaScreen({
               count={leavingProgressBars.length}
               centerContent
             >
-              <CategoryBarChart bars={leavingProgressBars} />
+              {/* Content scales up uniformly to fill the card's existing space
+                  (card size itself is unchanged) — see FitToBox. */}
+              <FitToBox fluidWidth>
+                <CategoryBarChart bars={leavingProgressBars} />
+              </FitToBox>
             </PersonalAreaCard>
 
             <PersonalAreaCard
@@ -483,7 +488,9 @@ export function PersonalAreaScreen({
               count={leavingCount}
               centerContent
             >
-              <DonutChart segments={leavingDonutSegments} total={leavingCount} centerCaption="פריטים בסך הכל" />
+              <FitToBox>
+                <DonutChart segments={leavingDonutSegments} />
+              </FitToBox>
             </PersonalAreaCard>
           </>
         ) : null}
