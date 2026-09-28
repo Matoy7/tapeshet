@@ -3,7 +3,6 @@ import { ChartContainer, type ChartConfig } from "@/components/ui/chart"
 import {
   CHART_GRID_STROKE,
   CHART_LIGHT_FILL_EDGE,
-  CHART_MIN_LABEL_PERCENT,
   getOnFillLabelColor,
   isNearWhiteFill,
 } from "@/lib/chartTheme"
@@ -46,15 +45,14 @@ type SliceLabelProps = {
   payload: DonutSegment
 }
 
-/** A % label centered on a slice's own arc — only for slices large enough
- * to hold one legibly; smaller slices are still identified via the legend
- * (color is never the only way to tell slices apart). Text color follows
+/** The slice's item count (not a percentage — the donut shows how the
+ * items are distributed across categories, not progress), centered on its
+ * own arc. Every slice gets its count: the legend lists category names
+ * only, so the ring is the one place a count appears. Text color follows
  * the slice's own fill (light fills get dark text, dark fills get white)
  * rather than assuming every slice is dark enough for white. */
 function renderSliceLabel(props: SliceLabelProps) {
-  const { cx, cy, midAngle, innerRadius, outerRadius, percent, index, payload } = props
-  const roundedPercent = Math.round(percent * 100)
-  if (roundedPercent < CHART_MIN_LABEL_PERCENT) return null
+  const { cx, cy, midAngle, innerRadius, outerRadius, index, payload } = props
 
   const radius = (innerRadius + outerRadius) / 2
   const radians = (-midAngle * Math.PI) / 180
@@ -72,7 +70,7 @@ function renderSliceLabel(props: SliceLabelProps) {
       fontWeight={700}
       fill={getOnFillLabelColor(payload.color)}
     >
-      {roundedPercent}%
+      {payload.count}
     </text>
   )
 }
@@ -112,17 +110,10 @@ export function DonutChart({ segments, total, centerCaption }: DonutChartProps) 
                   : "0 0 0 1px rgba(29,27,25,0.06)",
               }}
             />
-            <span className="flex min-w-0 flex-col">
-              {/* Hierarchy through weight + color, not through shrinking
-                  below the page's 16px minimum: category name stronger,
-                  item count lighter and muted. No truncate — a category
-                  name should never be cut off, it wraps instead. */}
-              <span className="text-[16px] font-semibold leading-5 text-tafsheet-text-primary">
-                {segment.label}
-              </span>
-              <span className="text-[16px] font-normal leading-5 text-tafsheet-text-muted">
-                {segment.count} פריטים
-              </span>
+            {/* Category name only — the count lives on the slice itself. No
+                truncate: a category name wraps rather than being cut off. */}
+            <span className="min-w-0 text-[16px] font-semibold leading-5 text-tafsheet-text-primary">
+              {segment.label}
             </span>
           </li>
         ))}
