@@ -63,7 +63,7 @@ function renderSliceLabel(props: SliceLabelProps) {
       y={y}
       textAnchor="middle"
       dominantBaseline="middle"
-      fontSize={16}
+      fontSize={14}
       fontWeight={700}
       fill={getOnFillLabelColor(payload.color)}
     >
@@ -89,15 +89,15 @@ export function DonutChart({ segments }: DonutChartProps) {
     // gap-4 rather than the wider gap the first pass used — legend and ring
     // read as one connected unit instead of two separate elements.
     <div className="flex items-center justify-center gap-4">
-      <ul className="flex min-w-0 flex-col gap-2.5">
+      <ul className="flex min-w-0 flex-col gap-2">
         {segments.map((segment) => (
-          <li key={segment.id} className="flex min-w-0 items-center gap-2.5">
+          <li key={segment.id} className="flex min-w-0 items-center gap-2">
             {/* A thin white ring around each dot separates it from its own
                 fill's neighbors and reads as a deliberate, finished mark
                 rather than a flat color swatch. */}
             <span
               aria-hidden
-              className="size-3 shrink-0 rounded-full ring-2 ring-white"
+              className="size-2.5 shrink-0 rounded-full ring-2 ring-white"
               style={{
                 backgroundColor: segment.color,
                 // Near-white swatches get the same hairline edge as their
@@ -109,7 +109,7 @@ export function DonutChart({ segments }: DonutChartProps) {
             />
             {/* Category name only — the count lives on the slice itself. No
                 truncate: a category name wraps rather than being cut off. */}
-            <span className="min-w-0 text-[16px] font-semibold leading-5 text-tafsheet-text-primary">
+            <span className="min-w-0 text-[14px] font-semibold leading-5 text-tafsheet-text-primary">
               {segment.label}
             </span>
           </li>

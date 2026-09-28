@@ -100,12 +100,12 @@ function PersonalAreaCard({
     <div className="flex h-full flex-col gap-3 rounded-xl border border-[#f0e8e0] bg-white p-4 shadow-[0px_1px_1px_rgba(0,0,0,0.05)]">
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <span aria-hidden className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[rgba(255,217,222,0.4)]">
+          <span aria-hidden className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[rgba(255,217,222,0.4)]">
             {icon}
           </span>
-          <span className="text-[20px] font-bold leading-7 text-[#1d1b19]">{title}</span>
+          <span className="text-[18px] font-bold leading-7 text-[#1d1b19]">{title}</span>
         </div>
-        <span className="shrink-0 rounded-full bg-[#f3ede8] px-2.5 py-1 text-[16px] font-medium leading-5 text-[#544245]">
+        <span className="flex h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-[#f3ede8] px-2 text-[14px] font-medium text-[#544245]">
           {count}
         </span>
       </div>
@@ -337,7 +337,7 @@ export function PersonalAreaScreen({
   const namesCard =
     favoriteNames.length > 0 ? (
       <PersonalAreaCard
-        icon={<PhosphorIcon icon={Heart} size={22} weight="duotone" color="#6f1e35" />}
+        icon={<PhosphorIcon icon={Heart} size={18} weight="duotone" color="#6f1e35" />}
         title="שמות מועדפים"
         count={favoriteNames.length}
       >
@@ -351,14 +351,14 @@ export function PersonalAreaScreen({
   // grid instead of leaving that row with a single, full-width card.
   const desktopNameSelectionCard = (
     <PersonalAreaCard
-      icon={<PhosphorIcon icon={Heart} size={22} weight="duotone" color="#6f1e35" />}
+      icon={<PhosphorIcon icon={Heart} size={18} weight="duotone" color="#6f1e35" />}
       title="בחירת שם"
       count={favoriteNames.length}
     >
       {favoriteNames.length > 0 ? (
         nameCardsGrid
       ) : (
-        <p className="text-[16px] leading-6 text-[#877275]">עדיין לא נבחרו שמות</p>
+        <p className="text-[14px] leading-5 text-[#877275]">עדיין לא נבחרו שמות</p>
       )}
     </PersonalAreaCard>
   )
@@ -389,11 +389,6 @@ export function PersonalAreaScreen({
       size="md"
       onClick={shareToWhatsApp}
         hoverEffect={false}
-      // The shared Button "md" size is 15px everywhere else in the app;
-      // overridden here (inline style beats a shared class regardless of
-      // stylesheet order) only for this one instance, to meet this page's
-      // own 16px-minimum text rule without changing every other md button.
-      style={{ fontSize: 16 }}
       iconStart={<PhosphorIcon icon={WhatsappLogo} size={16} weight="fill" color="#ffffff" />}
     >
       שלח את הרשימה בוואטסאפ
@@ -404,7 +399,7 @@ export function PersonalAreaScreen({
     <div className="mt-4 grid max-w-[1200px] grid-cols-1 gap-4 lg:grid-cols-2">
       {leavingGroups.length > 0 ? (
         <PersonalAreaCard
-          icon={<PhosphorIcon icon={Heart} size={22} weight="duotone" color="#6f1e35" />}
+          icon={<PhosphorIcon icon={Heart} size={18} weight="duotone" color="#6f1e35" />}
           title="דברים שצריך לעשות לפני יציאה"
           count={leavingCount}
         >
@@ -431,7 +426,7 @@ export function PersonalAreaScreen({
 
       {favoriteProfessionals.length > 0 ? (
         <PersonalAreaCard
-          icon={<PhosphorIcon icon={UsersThree} size={22} weight="duotone" color="#6f1e35" />}
+          icon={<PhosphorIcon icon={UsersThree} size={18} weight="duotone" color="#6f1e35" />}
           title="בעלי מקצוע מועדפים"
           count={favoriteProfessionals.length}
         >
@@ -465,30 +460,30 @@ export function PersonalAreaScreen({
   // second row never collapses to one lonely card. ציוד שנבחר is
   // mobile-only on this dashboard (see `content` above). -----------------
   const desktopContent = hasAnyItems ? (
-    <div className="@container mt-4">
+    <div className="@container mt-6">
       <div className="grid grid-cols-1 gap-4 @4xl:grid-cols-2">
         {showLeavingCharts ? (
           <>
             <PersonalAreaCard
-              icon={<PhosphorIcon icon={ChartBar} size={22} weight="duotone" color="#6f1e35" />}
+              icon={<PhosphorIcon icon={ChartBar} size={18} weight="duotone" color="#6f1e35" />}
               title="ההתקדמות שלי"
               count={leavingProgressBars.length}
               centerContent
             >
               {/* Content scales up uniformly to fill the card's existing space
                   (card size itself is unchanged) — see FitToBox. */}
-              <FitToBox fluidWidth>
+              <FitToBox fluidWidth maxScale={1}>
                 <CategoryBarChart bars={leavingProgressBars} />
               </FitToBox>
             </PersonalAreaCard>
 
             <PersonalAreaCard
-              icon={<PhosphorIcon icon={Heart} size={22} weight="duotone" color="#6f1e35" />}
+              icon={<PhosphorIcon icon={Heart} size={18} weight="duotone" color="#6f1e35" />}
               title="דברים שצריך לעשות לפני יציאה"
               count={leavingCount}
               centerContent
             >
-              <FitToBox>
+              <FitToBox maxScale={1.1}>
                 <DonutChart segments={leavingDonutSegments} />
               </FitToBox>
             </PersonalAreaCard>
@@ -497,7 +492,7 @@ export function PersonalAreaScreen({
 
         {favoriteProfessionalRecords.length > 0 ? (
           <PersonalAreaCard
-            icon={<PhosphorIcon icon={UsersThree} size={22} weight="duotone" color="#6f1e35" />}
+            icon={<PhosphorIcon icon={UsersThree} size={18} weight="duotone" color="#6f1e35" />}
             title="בעלי מקצוע מומלצים"
             count={favoriteProfessionalRecords.length}
           >
