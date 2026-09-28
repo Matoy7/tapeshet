@@ -6,8 +6,6 @@ import { cn } from "@/lib/cn"
 type FavoriteButtonProps = {
   favorited: boolean
   onToggle: () => void
-  /** Hover feedback on/off. On by default. */
-  hoverEffect?: boolean
 }
 
 /**
@@ -16,7 +14,7 @@ type FavoriteButtonProps = {
  * signed-in person: no shared count, no group context, nothing else to
  * coordinate. Saving a name is a private action.
  */
-export function FavoriteButton({ favorited, onToggle, hoverEffect = true }: FavoriteButtonProps) {
+export function FavoriteButton({ favorited, onToggle }: FavoriteButtonProps) {
   const [pop, setPop] = useState(false)
   const previous = useRef(favorited)
 
@@ -44,15 +42,14 @@ export function FavoriteButton({ favorited, onToggle, hoverEffect = true }: Favo
         "group -my-2 -ms-2 inline-flex min-h-11 items-center gap-1.5 rounded-md px-2 py-2",
         "text-label transition-colors duration-150 select-none",
         favorited ? "text-accent" : "text-content-muted",
-        hoverEffect &&
-          !favorited &&
+        !favorited &&
           "[@media(hover:hover)_and_(pointer:fine)]:hover:text-content-secondary",
       )}
     >
       <span
         className={cn(
           "relative inline-flex size-4 shrink-0 items-center justify-center transition-transform duration-200 ease-out",
-          hoverEffect && "[@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-110",
+          "[@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-110",
           pop && "animate-like-pop",
         )}
       >

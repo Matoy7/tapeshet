@@ -1,7 +1,3 @@
-import { Bar, BarChart, CartesianGrid, Cell, LabelList, XAxis, YAxis } from "recharts"
-import { ChartContainer, type ChartConfig } from "@/components/ui/chart"
-import { CHART_GRID_STROKE, CHART_LABEL_COLOR, CHART_TICK_STYLE } from "@/lib/chartTheme"
-
 export type CategoryBar = {
   id: string
   label: string
@@ -9,101 +5,38 @@ export type CategoryBar = {
   color: string
 }
 
-const CHART_HEIGHT = 236
-/** Recharts sizes the category axis's reserved space from its own default
- * heuristic, which doesn't know a custom two-line, 16px tick renders taller
- * than its usual single-line tick — without this the second line gets cut
- * off against the chart's own bottom edge. */
-const X_AXIS_HEIGHT = 46
-
-/** Wraps a category label onto up to two lines under its bar (the same
- * two-line allowance the old line-clamp gave it), since Recharts' own tick
- * text has no CSS line-clamp equivalent. Tuned for the page's 16px-minimum
- * label size, so each line holds fewer characters than a smaller-type tick
- * would. */
-function CategoryTick({ x, y, payload }: { x: number; y: number; payload: { value: string } }) {
-  const words = payload.value.split(" ")
-  const lines: string[] = []
-  let current = ""
-  for (const word of words) {
-    const candidate = current ? `${current} ${word}` : word
-    if (candidate.length > 9 && current) {
-      lines.push(current)
-      current = word
-    } else {
-      current = candidate
-    }
-  }
-  if (current) lines.push(current)
-  const shown = lines.slice(0, 2)
-
-  return (
-    <text x={x} y={y} textAnchor="middle" style={CHART_TICK_STYLE}>
-      {shown.map((line, index) => (
-        <tspan key={line} x={x} dy={index === 0 ? 16 : 19}>
-          {line}
-        </tspan>
-      ))}
-    </text>
-  )
-}
+/** "Very subtle neutral/pale background track" per the brief — the same
+ * pale neutral already used for tags/chips elsewhere (RemovableChip,
+ * ProfessionalCard's Tag), not a new color. */
+const TRACK_COLOR = "#f3ede8"
 
 /**
- * A minimal vertical bar chart — percent-complete per category. Built on
- * the Tafeshet Chart System's shared `ChartContainer` (Recharts
- * underneath): rounded bar tops, the percentage printed above each bar,
- * category name below it, a subtle horizontal grid and a light Y-axis
- * scale rather than the app's own hand-rolled SVG bars. Categories read
- * right-to-left (first category rightmost) to match the rest of the RTL
- * page. Callers are expected to only pass categories worth showing (the
- * Personal Area screen filters out 0%-progress categories before handing
- * bars here) — with fewer, meaningful bars, a low category gap lets each
- * one run wide while Recharts' own categorical axis spreads them evenly
- * across the full chart width regardless of how many there are.
+ * A minimal horizontal progress list — percent-complete per category, one
+ * row each. Category name on the right (RTL), percentage on the left,
+ * rounded track and fill, no axis or gridlines. No charting library: a
+ * handful of labeled progress rows is simpler and more reliably RTL-correct
+ * as plain markup than as an axis-based chart. The fill's color is set by
+ * the caller (Personal Area screen keys it to the brand's pink→burgundy
+ * ramp by the bar's own value), so this component itself makes no color
+ * decisions of its own beyond the shared track.
  */
 export function CategoryBarChart({ bars }: { bars: CategoryBar[] }) {
-  const config: ChartConfig = Object.fromEntries(
-    bars.map((bar) => [bar.id, { label: bar.label, color: bar.color }]),
-  )
-
   return (
-    <ChartContainer config={config} style={{ width: "100%", height: CHART_HEIGHT }}>
-      <BarChart data={bars} margin={{ top: 24, right: 4, left: 4, bottom: 4 }} barCategoryGap="20%">
-        <CartesianGrid vertical={false} stroke={CHART_GRID_STROKE} strokeDasharray="3 3" />
-        <XAxis
-          dataKey="label"
-          reversed
-          height={X_AXIS_HEIGHT}
-          tickLine={false}
-          axisLine={false}
-          interval={0}
-          tick={(props) => <CategoryTick {...props} />}
-        />
-        <YAxis
-          domain={[0, 100]}
-          tickCount={3}
-          tickLine={false}
-          axisLine={false}
-          width={40}
-          // Subtle through weight and color, not through being too small to
-          // read — the page's 16px floor still applies to axis numbers.
-          tick={{ ...CHART_TICK_STYLE, fontWeight: 400 }}
-          tickFormatter={(value: number) => `${value}%`}
-        />
-        {/* No hover tooltip: each bar already prints its % above it and its
-            category below it, so a hover bubble only repeated that. */}
-        <Bar dataKey="percent" radius={[8, 8, 0, 0]} maxBarSize={56} isAnimationActive={false}>
-          <LabelList
-            dataKey="percent"
-            position="top"
-            formatter={(value: number) => `${value}%`}
-            style={{ fill: CHART_LABEL_COLOR, fontSize: 16, fontWeight: 700, fontFamily: "var(--font-sans)" }}
-          />
-          {bars.map((bar) => (
-            <Cell key={bar.id} fill={bar.color} />
-          ))}
-        </Bar>
-      </BarChart>
-    </ChartContainer>
+    <div className="flex flex-col gap-4">
+      {bars.map((bar) => (
+        <div key={bar.id} className="flex flex-col gap-1.5">
+          <div className="flex items-start justify-between gap-3">
+            <span className="text-[16px] font-semibold leading-5 text-[#1d1b19]">{bar.label}</span>
+            <span className="shrink-0 text-[16px] font-bold leading-5 text-[#6f1e35]">{bar.percent}%</span>
+          </div>
+          <div className="h-2.5 w-full overflow-hidden rounded-full" style={{ backgroundColor: TRACK_COLOR }}>
+            <div
+              className="h-full rounded-full"
+              style={{ width: `${Math.max(bar.percent, 3)}%`, backgroundColor: bar.color }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
   )
 }

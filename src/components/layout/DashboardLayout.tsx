@@ -19,11 +19,6 @@ type DashboardLayoutProps = {
   onSelectNav: (id: string) => void
   onUpgrade?: () => void
   onSignOut: () => void
-  /** Lets a dashboard-style screen (Personal Area) use the full content
-   * width instead of the default 1440px reading column — its card grid is
-   * meant to fill the space beside the sidebar, not float in the middle of
-   * it. Every other screen keeps the capped column. */
-  fullWidthContent?: boolean
   children: ReactNode
 }
 
@@ -46,7 +41,6 @@ export function DashboardLayout({
   onSelectNav,
   onUpgrade,
   onSignOut,
-  fullWidthContent = false,
   children,
 }: DashboardLayoutProps) {
   const [navOpen, setNavOpen] = useState(false)
@@ -87,7 +81,7 @@ export function DashboardLayout({
           onOpenNav={() => setNavOpen(true)}
         />
 
-        <main className={`mx-auto w-full ${fullWidthContent ? "" : "max-w-[1440px] "}px-4 py-6 md:px-6 md:py-8 lg:px-8`}>
+        <main className="mx-auto w-full max-w-[1440px] px-4 py-6 md:px-6 md:py-8 lg:px-8">
           <div className="flex flex-col gap-8">{children}</div>
         </main>
       </div>

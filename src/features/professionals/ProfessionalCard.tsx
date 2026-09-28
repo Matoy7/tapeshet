@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, type CSSProperties } from "react"
 import { Icon as PhosphorIcon } from "@/components/ui/PhosphorIcon"
 import { Star, MapPin, Phone, Heart } from "@phosphor-icons/react"
 import { useGeneratedAvatar } from "@/lib/avatar"
@@ -38,30 +38,28 @@ function RatingRow({ rating, reviewCount }: { rating: number | null; reviewCount
  * "למידע נוסף"). Once revealed, the same control becomes the number itself
  * as a tel: link, so there's still exactly one action, not two.
  */
+// Exported so other screens that show a professional's contact action (the
+// Personal Area dashboard's recommended-professionals card) reuse this exact
+// reveal-then-call behavior instead of a second, drifting copy of it.
 export function ShowPhoneButton({
   phone,
   className,
-  hoverEffect = true,
-  alwaysRevealed = false,
+  style,
 }: {
   phone: string
   className?: string
-  /** Hover feedback on/off — Personal Area turns it off. */
-  hoverEffect?: boolean
-  /** Skip the "הצגת מספר" step and show the number straight away — used by
-   * אזור אישי, where the professional is one the person already saved. */
-  alwaysRevealed?: boolean
+  style?: CSSProperties
 }) {
   const [revealed, setRevealed] = useState(false)
 
-  if (revealed || alwaysRevealed) {
+  if (revealed) {
     return (
       <a
         href={`tel:${phone}`}
         dir="ltr"
+        style={style}
         className={cn(
-          "flex h-10 w-full items-center justify-center gap-2 rounded-full bg-[#ffd9de] text-[15px] font-bold text-[#6f1e35]",
-          hoverEffect && "transition-opacity hover:opacity-90",
+          "flex h-10 w-full items-center justify-center gap-2 rounded-full bg-[#ffd9de] text-[15px] font-bold text-[#6f1e35] transition-opacity hover:opacity-90",
           className,
         )}
       >
@@ -74,9 +72,9 @@ export function ShowPhoneButton({
     <button
       type="button"
       onClick={() => setRevealed(true)}
+      style={style}
       className={cn(
-        "flex h-10 w-full items-center justify-center gap-1.5 rounded-full bg-[#ffd9de] text-[15px] font-bold text-[#6f1e35]",
-        hoverEffect && "transition-opacity hover:opacity-90",
+        "flex h-10 w-full items-center justify-center gap-1.5 rounded-full bg-[#ffd9de] text-[15px] font-bold text-[#6f1e35] transition-opacity hover:opacity-90",
         className,
       )}
     >
@@ -90,10 +88,6 @@ type ProfessionalCardProps = {
   professional: Professional
   favorited: boolean
   onToggleFavorite: (id: string) => void
-  /** Show the phone number directly instead of behind "הצגת מספר". */
-  alwaysShowPhone?: boolean
-  /** Hover feedback on/off (card shadow + phone button). On by default. */
-  hoverEffect?: boolean
 }
 
 /**
@@ -104,13 +98,7 @@ type ProfessionalCardProps = {
  * a badge-style title) are genuinely different card anatomies, not the same
  * markup in different widths.
  */
-export function ProfessionalCard({
-  professional: p,
-  favorited,
-  onToggleFavorite,
-  alwaysShowPhone = false,
-  hoverEffect = true,
-}: ProfessionalCardProps) {
+export function ProfessionalCard({ professional: p, favorited, onToggleFavorite }: ProfessionalCardProps) {
   const avatar = useGeneratedAvatar(p.id)
 
   return (
@@ -158,16 +146,11 @@ export function ProfessionalCard({
           </div>
         ) : null}
 
-        <ShowPhoneButton phone={p.phone} alwaysRevealed={alwaysShowPhone} hoverEffect={hoverEffect} />
+        <ShowPhoneButton phone={p.phone} />
       </article>
 
       {/* --------------------------------------------------------------- Desktop */}
-      <article
-        className={cn(
-          "hidden h-full w-full flex-col justify-between gap-4 rounded-xl border border-border-subtle bg-surface p-5 shadow-name-card sm:flex",
-          hoverEffect && "transition-shadow duration-150 hover:shadow-name-card-hover",
-        )}
-      >
+      <article className="hidden h-full w-full flex-col justify-between gap-4 rounded-xl border border-border-subtle bg-surface p-5 shadow-name-card transition-shadow duration-150 hover:shadow-name-card-hover sm:flex">
         <div className="flex flex-col gap-3">
           <div className="flex items-start justify-between gap-2">
             <button
@@ -203,7 +186,7 @@ export function ProfessionalCard({
           ) : null}
         </div>
 
-        <ShowPhoneButton phone={p.phone} alwaysRevealed={alwaysShowPhone} hoverEffect={hoverEffect} />
+        <ShowPhoneButton phone={p.phone} />
       </article>
     </>
   )

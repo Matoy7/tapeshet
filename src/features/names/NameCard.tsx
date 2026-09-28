@@ -77,8 +77,6 @@ type NameCardProps = {
   name: NameCardData
   favorited: boolean
   onToggleFavorite: (nameId: string) => void
-  /** Hover feedback on/off (card shadow + heart). On by default. */
-  hoverEffect?: boolean
 }
 
 /**
@@ -99,7 +97,7 @@ type NameCardProps = {
  * rather than reproducing either layout faithfully. Desktop's block below
  * is untouched, byte-for-byte, from before this mobile pass.
  */
-export function NameCard({ name, favorited, onToggleFavorite, hoverEffect = true }: NameCardProps) {
+export function NameCard({ name, favorited, onToggleFavorite }: NameCardProps) {
   const tags: CardTag[] = [
     ...name.origins.slice(0, 1).map(originTag),
     ...name.meanings.slice(0, 1).map(meaningTag),
@@ -160,12 +158,7 @@ export function NameCard({ name, favorited, onToggleFavorite, hoverEffect = true
       {/* ------------------------------------------------------------------
           Desktop — unchanged from before the mobile pass.
       ------------------------------------------------------------------ */}
-      <article
-        className={cn(
-          "hidden h-full min-h-[196px] w-full flex-col justify-between rounded-xl border border-border-subtle bg-surface p-6 shadow-name-card sm:flex",
-          hoverEffect && "transition-shadow duration-150 hover:shadow-name-card-hover",
-        )}
-      >
+      <article className="hidden h-full min-h-[196px] w-full flex-col justify-between rounded-xl border border-border-subtle bg-surface p-6 shadow-name-card transition-shadow duration-150 hover:shadow-name-card-hover sm:flex">
         <div>
           <div className="flex items-start justify-between gap-3">
             <p
@@ -197,7 +190,7 @@ export function NameCard({ name, favorited, onToggleFavorite, hoverEffect = true
                 <TagDesktop key={tag.key} tag={tag} />
               ))}
             </div>
-            <FavoriteButton favorited={favorited} onToggle={() => onToggleFavorite(name.nameId)} hoverEffect={hoverEffect} />
+            <FavoriteButton favorited={favorited} onToggle={() => onToggleFavorite(name.nameId)} />
           </div>
         </div>
       </article>

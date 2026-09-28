@@ -11,20 +11,16 @@ const base =
   "disabled:pointer-events-none disabled:opacity-45"
 
 const variantStyles: Record<ButtonVariant, string> = {
-  primary: "bg-primary text-content-inverse shadow-primary active:bg-primary-active",
-  secondary: "bg-surface text-content-primary border border-border shadow-card active:bg-surface-muted",
-  ghost: "bg-transparent text-content-secondary active:bg-surface-secondary",
-  destructive: "bg-danger text-content-inverse active:bg-danger-hover",
-}
-
-/** Hover feedback per variant — kept separate so a screen that wants no
- * hover effects (Personal Area) can drop it via `hoverEffect={false}`
- * without redefining the variant itself. */
-const hoverStyles: Record<ButtonVariant, string> = {
-  primary: "hover:bg-primary-hover",
-  secondary: "hover:bg-surface-hover hover:border-border-strong",
-  ghost: "hover:bg-surface-muted hover:text-content-primary",
-  destructive: "hover:bg-danger-hover",
+  primary:
+    "bg-primary text-content-inverse shadow-primary hover:bg-primary-hover active:bg-primary-active",
+  secondary:
+    "bg-surface text-content-primary border border-border shadow-card " +
+    "hover:bg-surface-hover hover:border-border-strong active:bg-surface-muted",
+  ghost:
+    "bg-transparent text-content-secondary hover:bg-surface-muted hover:text-content-primary " +
+    "active:bg-surface-secondary",
+  destructive:
+    "bg-danger text-content-inverse hover:bg-danger-hover active:bg-danger-hover",
 }
 
 const sizeStyles: Record<ButtonSize, string> = {
@@ -37,8 +33,6 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant
   size?: ButtonSize
   fullWidth?: boolean
-  /** Hover feedback on/off. On everywhere by default. */
-  hoverEffect?: boolean
   iconStart?: ReactNode
   iconEnd?: ReactNode
 }
@@ -47,7 +41,6 @@ export function Button({
   variant = "primary",
   size = "md",
   fullWidth = false,
-  hoverEffect = true,
   iconStart,
   iconEnd,
   className,
@@ -61,7 +54,6 @@ export function Button({
       className={cn(
         base,
         variantStyles[variant],
-        hoverEffect && hoverStyles[variant],
         sizeStyles[size],
         fullWidth && "w-full",
         className,
