@@ -44,6 +44,19 @@ export function getOnFillLabelColor(fill: string): string {
   return relativeLuminance(fill) > 0.6 ? CHART_LABEL_COLOR : "#ffffff"
 }
 
+/** The pink-light end of the ramp is close enough to white that a fill
+ * there vanishes into the white card behind it. Fills this light get a
+ * hairline edge (below) so every slice/swatch keeps a visible boundary —
+ * same relative-luminance scale as the label check above. */
+export function isNearWhiteFill(fill: string): boolean {
+  return relativeLuminance(fill) > 0.85
+}
+
+/** Hairline edge for near-white fills — a light step of the brand ramp
+ * itself (dusty pink), not a new color, so the slice reads as "palest pink
+ * with a soft outline" rather than "boxed in". */
+export const CHART_LIGHT_FILL_EDGE = rampAt(0.22)
+
 export const CHART_FONT_FAMILY = "var(--font-sans)"
 
 /** Shared tick typography, spread directly onto a Recharts `<XAxis tick={{...}} />`.

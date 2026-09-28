@@ -6,15 +6,20 @@ import { Button } from "@/components/ui/Button"
 import { cn } from "@/lib/cn"
 import { DonutChart, type DonutSegment } from "@/components/ui/DonutChart"
 import { CategoryBarChart, type CategoryBar } from "@/components/ui/CategoryBarChart"
-import { ShowPhoneButton } from "@/features/professionals/ProfessionalCard"
-import { useGeneratedAvatar } from "@/lib/avatar"
 import { assets } from "@/lib/assets"
 import { rampAt, rampStep } from "@/lib/colorRamp"
 import { GEAR_CATEGORIES } from "@/data/babyGear"
 import { LEAVING_CATEGORIES } from "@/data/leaving"
-import { PROFESSIONALS, type Professional } from "@/data/professionals"
-import type { NameCardData } from "@/features/names/NameCard"
-import { Heart, UsersThree, WhatsappLogo, X, ChartBar, Star, MapPin } from "@phosphor-icons/react"
+import { PROFESSIONALS } from "@/data/professionals"
+import { ProfessionalCard } from "@/features/professionals/ProfessionalCard"
+import { NameCard, type NameCardData } from "@/features/names/NameCard"
+import {
+  Heart,
+  UsersThree,
+  WhatsappLogo,
+  X,
+  ChartBar,
+} from "@phosphor-icons/react"
 
 /**
  * "אזור אישי" (Personal Area) — the single place that gathers everything the
@@ -44,11 +49,6 @@ type PersonalAreaScreenProps = {
   onToggleLeaving: (id: string) => void
   professionalFavorites: Set<string>
   onToggleProfessionalFavorite: (id: string) => void
-  /** Desktop-only "בעלי מקצוע מומלצים" card: each category row is
-   * clickable and takes the person to בעלי מקצוע, same as the sidebar/
-   * drawer entry — reuses the app's existing navigation rather than
-   * introducing a second way to get there. */
-  onNavigateToProfessionals: () => void
 }
 
 type Chip = { key: string; label: string; onRemove: () => void }
@@ -63,7 +63,7 @@ function RemovableChip({ chip }: { chip: Chip }) {
         type="button"
         onClick={chip.onRemove}
         aria-label={`הסרת ${chip.label}`}
-        className="flex size-6 shrink-0 items-center justify-center rounded-full text-[#877275] transition-colors duration-150 hover:bg-[#e9e1d9] hover:text-[#1d1b19]"
+        className="flex size-6 shrink-0 items-center justify-center rounded-full text-[#877275]"
       >
         <PhosphorIcon icon={X} size={11} color="currentColor" weight="bold" />
       </button>
@@ -116,61 +116,6 @@ function PersonalAreaCard({
         )}
       >
         {children}
-      </div>
-    </div>
-  )
-}
-
-/** One favorited professional's card in "בעלי מקצוע מומלצים" — photo, name,
- * role, location, rating and a contact button, all visible directly (never
- * collapsed behind a click). The photo reuses the app's existing generated-
- * avatar system (`useGeneratedAvatar`, also used on the main בעלי מקצוע
- * screen) rather than a real photo service, so a saved professional looks
- * exactly the same here as everywhere else in the app. The whole card still
- * opens בעלי מקצוע on click, same as before this pass — except the contact
- * button, which stops that click from bubbling so it can act on its own. */
-function RecommendedProfessionalCard({ professional: p, onOpen }: { professional: Professional; onOpen: () => void }) {
-  const avatar = useGeneratedAvatar(p.id)
-
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={onOpen}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") onOpen()
-      }}
-      className="flex w-[272px] max-w-full cursor-pointer flex-col gap-3 rounded-lg border border-[#f0e8e0] bg-white p-3 transition-colors duration-150 hover:bg-[#fff7f5]"
-    >
-      <div className="flex items-center gap-3">
-        {avatar ? (
-          <img src={avatar} alt="" aria-hidden className="size-14 shrink-0 rounded-full bg-[#f8f3ee] object-cover" />
-        ) : (
-          <span aria-hidden className="size-14 shrink-0 rounded-full bg-[#f8f3ee]" />
-        )}
-        <div className="min-w-0 flex-1">
-          <p className="text-[16px] font-semibold leading-5 text-[#1d1b19]">{p.name}</p>
-          <p className="text-[16px] leading-5 text-[#877275]">{p.title}</p>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between gap-2">
-        <span className="flex min-w-0 items-center gap-1 text-[16px] text-[#877275]">
-          <PhosphorIcon icon={MapPin} size={14} color="#877275" />
-          <span className="truncate">{p.areaLabel}</span>
-        </span>
-        {p.rating !== null ? (
-          <span className="flex shrink-0 items-center gap-1 text-[16px] font-medium text-[#1d1b19]">
-            <PhosphorIcon icon={Star} size={14} color="#f0a63a" weight="fill" />
-            {p.rating.toFixed(1)}
-          </span>
-        ) : null}
-      </div>
-
-      {/* Stops the click here so revealing/calling the number doesn't also
-          fire the card's own onOpen. */}
-      <div onClick={(event) => event.stopPropagation()}>
-        <ShowPhoneButton phone={p.phone} style={{ fontSize: 16 }} />
       </div>
     </div>
   )
@@ -247,7 +192,6 @@ export function PersonalAreaScreen({
   onToggleLeaving,
   professionalFavorites,
   onToggleProfessionalFavorite,
-  onNavigateToProfessionals,
 }: PersonalAreaScreenProps) {
   // ---- דברים שצריך לעשות לפני יציאה — checked "לפני שיוצאים" items,
   // grouped by their original checklist sub-category (same pattern as the
@@ -289,8 +233,8 @@ export function PersonalAreaScreen({
   }))
 
   // ---- Favorite Names -----------------------------------------------------
-  const favoriteNames: Chip[] = names
-    .filter((n) => nameFavorites.get(n.nameId))
+  const favoriteNameRecords = names.filter((n) => nameFavorites.get(n.nameId))
+  const favoriteNames: Chip[] = favoriteNameRecords
     .map((n) => ({
       key: n.nameId,
       label: n.text,
@@ -345,6 +289,40 @@ export function PersonalAreaScreen({
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer")
   }
 
+  // ---- Saved names / professionals render with the exact same cards as
+  // the בחירת שם and בעלי מקצוע screens (NameCard / ProfessionalCard) —
+  // not a separate dashboard-only card — with hover effects off (this
+  // screen has none) and the phone number always shown. Toggling a card's
+  // heart un-saves it here and on its own screen alike (shared state).
+  // On mobile those cards are white-on-white inside this screen's white
+  // section cards, so they get this screen's hairline border to stay
+  // distinguishable; desktop cards already carry their own border.
+  const savedCardList = "max-sm:[&_article]:border max-sm:[&_article]:border-[#f0e8e0]"
+  const nameCardsGrid = (
+    <ul className={cn("grid grid-cols-[repeat(auto-fill,minmax(min(100%,200px),1fr))] gap-3", savedCardList)}>
+      {favoriteNameRecords.map((name) => (
+        <li key={name.nameId} className="flex">
+          <NameCard name={name} favorited onToggleFavorite={onToggleNameFavorite} hoverEffect={false} />
+        </li>
+      ))}
+    </ul>
+  )
+  const professionalCardsGrid = (
+    <ul className={cn("grid grid-cols-[repeat(auto-fill,minmax(min(100%,260px),1fr))] gap-3", savedCardList)}>
+      {favoriteProfessionalRecords.map((p) => (
+        <li key={p.id} className="flex">
+          <ProfessionalCard
+            professional={p}
+            favorited
+            onToggleFavorite={onToggleProfessionalFavorite}
+            alwaysShowPhone
+            hoverEffect={false}
+          />
+        </li>
+      ))}
+    </ul>
+  )
+
   // ---- שמות מועדפים — kept as its own variable so the mobile chip-grid
   // (`content`) and the desktop layout (`desktopContent`) don't keep two
   // copies of this JSX in sync by hand. ציוד שנבחר no longer has a card of
@@ -358,11 +336,7 @@ export function PersonalAreaScreen({
         title="שמות מועדפים"
         count={favoriteNames.length}
       >
-        <div className="flex flex-wrap items-center gap-2">
-          {favoriteNames.map((chip) => (
-            <RemovableChip key={chip.key} chip={chip} />
-          ))}
-        </div>
+        {nameCardsGrid}
       </PersonalAreaCard>
     ) : null
 
@@ -377,11 +351,7 @@ export function PersonalAreaScreen({
       count={favoriteNames.length}
     >
       {favoriteNames.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-2">
-          {favoriteNames.map((chip) => (
-            <RemovableChip key={chip.key} chip={chip} />
-          ))}
-        </div>
+        nameCardsGrid
       ) : (
         <p className="text-[16px] leading-6 text-[#877275]">עדיין לא נבחרו שמות</p>
       )}
@@ -400,6 +370,7 @@ export function PersonalAreaScreen({
         size="lg"
         fullWidth
         onClick={shareToWhatsApp}
+        hoverEffect={false}
         iconStart={<PhosphorIcon icon={WhatsappLogo} size={20} weight="fill" color="#ffffff" />}
       >
         שלחי את הרשימה בוואטסאפ
@@ -412,6 +383,7 @@ export function PersonalAreaScreen({
       variant="primary"
       size="md"
       onClick={shareToWhatsApp}
+        hoverEffect={false}
       // The shared Button "md" size is 15px everywhere else in the app;
       // overridden here (inline style beats a shared class regardless of
       // stylesheet order) only for this one instance, to meet this page's
@@ -458,11 +430,7 @@ export function PersonalAreaScreen({
           title="בעלי מקצוע מועדפים"
           count={favoriteProfessionals.length}
         >
-          <div className="flex flex-wrap items-center gap-2">
-            {favoriteProfessionals.map((chip) => (
-              <RemovableChip key={chip.key} chip={chip} />
-            ))}
-          </div>
+          {professionalCardsGrid}
         </PersonalAreaCard>
       ) : null}
 
@@ -478,52 +446,51 @@ export function PersonalAreaScreen({
     </div>
   )
 
-  // ---- Desktop-only layout: an even 2-on-2 grid — bar chart + donut on
-  // top, בעלי מקצוע מומלצים + בחירת שם beneath. בחירת שם always renders
-  // (see desktopNameSelectionCard above) specifically so that second row
-  // never collapses to one lonely full-width card the way it used to when
-  // nothing was favorited yet. ציוד שנבחר is mobile-only on this dashboard
-  // per the previous refinement pass (see `content` above). --------------
+  // ---- Desktop-only layout: one 2-column grid holding all four cards —
+  // bar chart + donut on top, בעלי מקצוע מומלצים + בחירת שם beneath — so
+  // both rows share the exact same column tracks and line up edge to edge.
+  // It spans the full content column (no max-width cap: that cap, while the
+  // header row above stayed full-width, is what left an empty strip beside
+  // the grid and pushed the WhatsApp action out past the grid's edge).
+  // Columns switch on the grid's own width (container query), not the
+  // viewport's: the sidebar appears at `lg`, so viewport width alone says
+  // little about how much room the cards actually have — two columns only
+  // once each card has room for the donut + its legend side by side.
+  // בחירת שם always renders (see desktopNameSelectionCard above) so the
+  // second row never collapses to one lonely card. ציוד שנבחר is
+  // mobile-only on this dashboard (see `content` above). -----------------
   const desktopContent = hasAnyItems ? (
-    <div className="mt-4 max-w-[1200px]">
-      {showLeavingCharts ? (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <PersonalAreaCard
-            icon={<PhosphorIcon icon={ChartBar} size={22} weight="duotone" color="#6f1e35" />}
-            title="ההתקדמות שלי"
-            count={leavingProgressBars.length}
-            centerContent
-          >
-            <CategoryBarChart bars={leavingProgressBars} />
-          </PersonalAreaCard>
+    <div className="@container mt-4">
+      <div className="grid grid-cols-1 gap-4 @4xl:grid-cols-2">
+        {showLeavingCharts ? (
+          <>
+            <PersonalAreaCard
+              icon={<PhosphorIcon icon={ChartBar} size={22} weight="duotone" color="#6f1e35" />}
+              title="ההתקדמות שלי"
+              count={leavingProgressBars.length}
+              centerContent
+            >
+              <CategoryBarChart bars={leavingProgressBars} />
+            </PersonalAreaCard>
 
-          <PersonalAreaCard
-            icon={<PhosphorIcon icon={Heart} size={22} weight="duotone" color="#6f1e35" />}
-            title="דברים שצריך לעשות לפני יציאה"
-            count={leavingCount}
-            centerContent
-          >
-            <DonutChart segments={leavingDonutSegments} total={leavingCount} centerCaption="פריטים בסך הכל" />
-          </PersonalAreaCard>
-        </div>
-      ) : null}
+            <PersonalAreaCard
+              icon={<PhosphorIcon icon={Heart} size={22} weight="duotone" color="#6f1e35" />}
+              title="דברים שצריך לעשות לפני יציאה"
+              count={leavingCount}
+              centerContent
+            >
+              <DonutChart segments={leavingDonutSegments} total={leavingCount} centerCaption="פריטים בסך הכל" />
+            </PersonalAreaCard>
+          </>
+        ) : null}
 
-      <div className={`grid grid-cols-1 gap-4 lg:grid-cols-2 ${showLeavingCharts ? "mt-4" : ""}`}>
         {favoriteProfessionalRecords.length > 0 ? (
           <PersonalAreaCard
             icon={<PhosphorIcon icon={UsersThree} size={22} weight="duotone" color="#6f1e35" />}
             title="בעלי מקצוע מומלצים"
-            count={favoriteProfessionals.length}
+            count={favoriteProfessionalRecords.length}
           >
-            <div className="flex flex-wrap gap-3">
-              {favoriteProfessionalRecords.map((professional) => (
-                <RecommendedProfessionalCard
-                  key={professional.id}
-                  professional={professional}
-                  onOpen={onNavigateToProfessionals}
-                />
-              ))}
-            </div>
+            {professionalCardsGrid}
           </PersonalAreaCard>
         ) : null}
 
@@ -531,7 +498,7 @@ export function PersonalAreaScreen({
       </div>
     </div>
   ) : (
-    <div className="mt-4 max-w-[1200px]">
+    <div className="mt-4">
       <EmptyState
         image={assets.emptyStateBrain}
         title="אין עדיין פריטים להצגה"

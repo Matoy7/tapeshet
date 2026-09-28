@@ -302,6 +302,7 @@ export default function App() {
         activeNavId={mobileView}
         mobileCategories={mobileCategories}
         activeMobileCategoryId={mobileView}
+        fullWidthContent={mobileView === "personal"}
         userName={userName}
         avatarUrl={avatarUrl}
         canUpgrade={canUpgradeAccount(session.user)}
@@ -369,7 +370,6 @@ export default function App() {
             onToggleLeaving={toggleLeaving}
             professionalFavorites={professionalFavorites}
             onToggleProfessionalFavorite={toggleProfessionalFavorite}
-            onNavigateToProfessionals={() => setMobileView("professionals")}
           />
         </div>
 

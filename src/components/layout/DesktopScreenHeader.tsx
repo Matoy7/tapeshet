@@ -32,7 +32,7 @@ type DesktopScreenHeaderProps = {
 export function DesktopScreenHeader({ image, icon, title, subtitle, progressLabel, action }: DesktopScreenHeaderProps) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 pb-1">
-      <div className="flex items-center gap-4">
+      <div className="flex min-w-0 items-center gap-4">
         {image ? (
           <img src={image} alt="" aria-hidden className="h-14 w-14 shrink-0 object-contain" />
         ) : icon ? (
@@ -43,13 +43,13 @@ export function DesktopScreenHeader({ image, icon, title, subtitle, progressLabe
             {icon}
           </span>
         ) : null}
-        <div>
+        <div className="min-w-0">
           <h1 className="text-[26px] font-bold leading-[32px] text-[#6f1e35]">{title}</h1>
           <p className="mt-0.5 text-[15px] leading-5 text-[#544245]">{subtitle}</p>
         </div>
       </div>
       {progressLabel || action ? (
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           {progressLabel ? <p className="text-[15px] font-medium text-[#544245]">{progressLabel}</p> : null}
           {action}
         </div>
