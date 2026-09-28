@@ -274,7 +274,11 @@ export function PersonalAreaScreen({
       const total = category.items.length
       const done = category.items.filter((item) => leavingChecked.has(item.id)).length
       const percent = Math.round((done / total) * 100)
-      return { id: category.id, label: category.title, percent, color: rampAt(percent / 100) }
+      // The % label now sits inside the fill in white, so the fill stays on
+      // the deeper part of the same pink→burgundy ramp (0.65–1): the old
+      // full 0–1 range made low values near-white, where a white label
+      // can't be read. Higher progress still reads as a deeper burgundy.
+      return { id: category.id, label: category.title, percent, color: rampAt(0.65 + 0.35 * (percent / 100)) }
     })
     .filter((bar) => bar.percent > 0)
   const showLeavingCharts = leavingGroups.length > 0
